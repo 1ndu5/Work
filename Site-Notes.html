@@ -11,7 +11,8 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; }
 .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 h1 { font-size: 1.5rem; margin-bottom: 16px; color: #333; }
-.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; width: 100%; }
+.tab-btn { flex: 1; }
 .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 6px; font-size: 14px; }
 .tab-btn.active { background: #2196F3; color: white; }
 .tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -19,7 +20,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; color: #333; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; }
 .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-.form-group textarea { min-height: 200px; resize: vertical; font-family: inherit; }
+.form-group textarea { min-height: 330px; resize: vertical; font-family: inherit; }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-bottom: 16px; }
 .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; }
@@ -62,8 +63,6 @@ tr:hover { background: #f9f9f9; }
   .form-row { grid-template-columns: 1fr; }
   .checkbox-grid { grid-template-columns: 1fr; }
   .photo-grid { grid-template-columns: 1fr; }
-  .tabs { flex-direction: column; }
-  .tab-btn { width: 100%; }
   table { font-size: 13px; }
   th, td { padding: 8px 4px; }
 }
@@ -73,7 +72,7 @@ tr:hover { background: #f9f9f9; }
 <div class="container">
 <h1>📋 Site Notes</h1>
 <div class="tabs">
-<button class="tab-btn active" onclick="showTab('new')">New Note</button>
+<button class="tab-btn active" onclick="showTab('new')">Edit Note</button>
 <button class="tab-btn" onclick="showTab('saved')">Saved Notes</button>
 <button class="tab-btn" onclick="showTab('settings')">Settings</button>
 </div>
@@ -82,6 +81,14 @@ tr:hover { background: #f9f9f9; }
 <div class="form-row">
 <div class="form-group"><label>Job Name</label><input type="text" id="jobName"></div>
 <div class="form-group"><label>Job Number</label><input type="text" id="jobNumber"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Client</label><input type="text" id="client"></div>
+<div class="form-group"><label>BC Number</label><input type="text" id="bcNumber"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Site Foreman</label><input type="text" id="siteForeman"></div>
+<div class="form-group"><label>Weather</label><input type="text" id="weather"></div>
 </div>
 <div class="form-row">
 <div class="form-group"><label>Technician</label><input type="text" id="technician"></div>
@@ -103,8 +110,8 @@ tr:hover { background: #f9f9f9; }
 <div class="btn-group">
 <button class="btn btn-success" onclick="saveNote()">💾 Save Note</button>
 <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
-<button class="btn btn-secondary" onclick="exportRTF()">📝 Export RTF</button>
-<button class="btn btn-secondary" onclick="exportHTML()">🌐 Export HTML</button>
+<button class="btn btn-secondary" onclick="exportTXT()">📝 Export TXT</button>
+<button class="btn btn-secondary" onclick="exportDOC()">📄 Export Word</button>
 <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear</button>
 </div>
 </div>
@@ -112,6 +119,11 @@ tr:hover { background: #f9f9f9; }
 <div id="saved" class="tab-content">
 <h2 style="margin-bottom: 16px;">Saved Notes</h2>
 <div id="savedNotesTable"></div>
+<div class="btn-group" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+<button class="btn btn-primary" onclick="exportAllData()">📤 Export All Data</button>
+<button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import Data</button>
+<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importAllData(event)">
+</div>
 </div>
 
 <div id="settings" class="tab-content">
@@ -134,7 +146,7 @@ tr:hover { background: #f9f9f9; }
 <div class="settings-section">
 <h3>Quick Add Templates</h3>
 <div id="templateInputs"></div>
-<button class="btn btn-secondary" style="margin-top:10px;" onclick="saveSettings()">Save Templates</button>
+<button class="btn btn-success" style="margin-top:10px;" onclick="saveSettings()">Save Templates</button>
 </div>
 </div>
 </div>
@@ -159,9 +171,9 @@ const defaultTemplates = [
   { title: "Piled Foundations", text: "Observed bored pile excavations as shown on attached site plan.  Piles were XX m deep and XXX mm diameter.  Shear vanes in the side of the piles ranged between XX and XX kPa and in the base ranged between XX and XX kPa which meet the design assumptions." },
   { title: "Clay Fill Testing", text: "Approximately XXX mm of clay has been placed across the fill area shown on the attached site plan since last visit.  Shear vane testing across the fill area ranged from XX to XX kPa.  XX air voids samples were collected from locations shown on attached site plan." },
   { title: "Clegg Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit.  Clegg Hammer testing was carried out which returned CIV values ranging between XX and XX which meet the required specification." },
-  { title: "Retaining Walls", text: "In-situ testing (DCP/Vane shear) completed at designated locations." },
+  { title: "Retaining Walls", text: "Observed the retaining wall pile holes along the length marked on the attached plan.  Pile hole depths ranged between XX and XX m.  Shear vanes in the cut face ranged between XX and XX kPa.  Shear vanes in the pile holes ranged between XX and XX kPa." },
   { title: "Hardfill NDM Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. XXX NDM tests were carried out in the locations shown on the site plan.  These returned results ranging between XX and XX % of MDD which meet the required specification." },
-  { title: "Follow up with CAN", text: "Discussed potential remedial actions with contractor.  Our recommendations will be issued in a seperate CAN." }
+  { title: "Follow up with CAN", text: "Discussed potential remedial actions with contractor.  Our recommendations will be issued in a separate CAN." }
 ];
 
 let settings = JSON.parse(localStorage.getItem('siteNotesSettings')) || {
@@ -321,6 +333,10 @@ function getFormData() {
     id: editingNoteId || Date.now(),
     jobName: document.getElementById('jobName').value,
     jobNumber: document.getElementById('jobNumber').value,
+    client: document.getElementById('client').value,
+    bcNumber: document.getElementById('bcNumber').value,
+    siteForeman: document.getElementById('siteForeman').value,
+    weather: document.getElementById('weather').value,
     technician: document.getElementById('technician').value,
     date: document.getElementById('noteDate').value,
     time: document.getElementById('noteTime').value,
@@ -369,6 +385,10 @@ function loadNote(id) {
   editingNoteId = id;
   document.getElementById('jobName').value = note.jobName || '';
   document.getElementById('jobNumber').value = note.jobNumber || '';
+  document.getElementById('client').value = note.client || '';
+  document.getElementById('bcNumber').value = note.bcNumber || '';
+  document.getElementById('siteForeman').value = note.siteForeman || '';
+  document.getElementById('weather').value = note.weather || '';
   document.getElementById('technician').value = note.technician || '';
   document.getElementById('noteDate').value = note.date || '';
   document.getElementById('noteTime').value = note.time || '';
@@ -400,6 +420,10 @@ function clearForm() {
   editingNoteId = null;
   document.getElementById('jobName').value = '';
   document.getElementById('jobNumber').value = '';
+  document.getElementById('client').value = '';
+  document.getElementById('bcNumber').value = '';
+  document.getElementById('siteForeman').value = '';
+  document.getElementById('weather').value = '';
   document.getElementById('technician').value = settings.technician;
   document.getElementById('siteNotes').value = '';
   photos = [null, null, null, null, null, null];
@@ -449,7 +473,7 @@ async function exportPDF() {
   // Title left-aligned
   pdf.setFontSize(20);
   pdf.setFont(undefined, "bold");
-  pdf.text("Site Note", margin, y + 10);
+  pdf.text("Site Observation Record", margin, y + 10);
 
   // Header divider
   pdf.setDrawColor(180);
@@ -464,11 +488,15 @@ async function exportPDF() {
 
   const leftCol = [
     `Job Name: ${data.jobName || "-"}`,
+    `Client: ${data.client || "-"}`,
+    `Site Foreman: ${data.siteForeman || "-"}`,
     `Technician: ${data.technician || "-"}`
   ];
 
   const rightCol = [
     `Job Number: ${data.jobNumber || "-"}`,
+    `BC Number: ${data.bcNumber || "-"}`,
+    `Weather: ${data.weather || "-"}`,
     `Date: ${data.date}   Time: ${data.time}`
   ];
 
@@ -480,11 +508,16 @@ async function exportPDF() {
     pdf.text(t, pageW / 2, y + i * 6);
   });
 
-  y += 18;
+  y += 25;
 
   // ---------------------------------------------------------------------------
   // 3. SITE NOTES SECTION
-  y = sectionHeader("Site Notes", y);
+
+  pdf.setDrawColor(180);
+  pdf.line(margin, y, pageW - margin, y);
+  y += 15;
+
+  y = sectionHeader("Description of Observations and Testing", y);
 
   pdf.setFontSize(11);
   pdf.setFont(undefined, "normal");
@@ -506,7 +539,7 @@ async function exportPDF() {
     pdf.addPage();
     y = margin;
 
-    y = sectionHeader("Photo Gallery", y);
+    y = sectionHeader("Site Photos", y);
 
     const cols = 2;
     const colGap = 10;
@@ -585,65 +618,186 @@ async function exportPDF() {
   pdf.save(`${safeJob}_${safeDate}_SiteVisit.pdf`);
 }
 
-
-function exportRTF() {
+function exportTXT() {
   const data = getFormData();
-  let rtf = `{\\rtf1\\ansi\\deff0 {\\fonttbl{\\f0 Arial;}}
-\\f0\\fs24\\b Site Note\\b0\\par\\par
-\\fs22 Job Name: ${data.jobName}\\par
-Job Number: ${data.jobNumber}\\par
-Technician: ${data.technician}\\par
-Date: ${data.date}  Time: ${data.time}\\par
-\\par\\line\\par
-\\fs20 ${data.notes.replace(/\n/g, '\\par ')}\\par`;
+  let txt = `Site Observation Record
+====================
+
+Job Name: ${data.jobName}
+Job Number: ${data.jobNumber}
+Client: ${data.client}
+BC Number: ${data.bcNumber}
+Site Foreman: ${data.siteForeman}
+Weather: ${data.weather}
+Technician: ${data.technician}
+Date: ${data.date}  Time: ${data.time}
+
+--------------------
+
+${data.notes}`;
   
-  if (data.photos.length > 0) {
-    rtf += `\\par\\page\\fs24\\b Photo Gallery\\b0\\par\\par`;
-    data.photos.forEach((p, i) => {
-      rtf += `\\fs20 Photo ${i + 1}: ${p.caption || 'No caption'}\\par\\par`;
-    });
-    rtf += `\\par\\fs18\\i Note: Photos must be added manually to this RTF document or use PDF/HTML export for embedded images.\\i0\\par`;
-  }
-  rtf += '}';
-  
-  const blob = new Blob([rtf], { type: 'application/rtf' });
+  const blob = new Blob([txt], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `SiteNote_${data.jobNumber || 'export'}_${data.date}.rtf`;
+  a.download = `SiteNote_${data.jobNumber || 'export'}_${data.date}.txt`;
   a.click();
 }
 
-function exportHTML() {
+function exportDOC() {
   const data = getFormData();
+  
   let photoHTML = '';
   if (data.photos.length > 0) {
-    photoHTML = `<div style="page-break-before:always;"><h2>Photo Gallery</h2>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
-    ${data.photos.map((p, i) => `<div style="text-align:center;">
-      <img src="${p.data}" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px;">
-      <p style="margin-top:8px;color:#666;">${p.caption || `Photo ${i + 1}`}</p>
-    </div>`).join('')}</div></div>`;
+    photoHTML = '<br clear="all" style="page-break-before:always;"><h2>Site Photos</h2>';
+    for (let i = 0; i < data.photos.length; i += 2) {
+      photoHTML += '<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><tr>';
+      
+      // First photo in row
+      const p1 = data.photos[i];
+      photoHTML += '<td style="width:50%;padding:10px;text-align:center;vertical-align:top;">' +
+        '<img src="' + p1.data + '" height="170"><br>' +
+        '<span style="font-size:10pt;color:#666;">' + (p1.caption || 'Photo ' + (i + 1)) + '</span></td>';
+      
+      // Second photo in row (if exists)
+      if (data.photos[i + 1]) {
+        const p2 = data.photos[i + 1];
+        photoHTML += '<td style="width:50%;padding:10px;text-align:center;vertical-align:top;">' +
+          '<img src="' + p2.data + '" height="170"><br>' +
+          '<span style="font-size:10pt;color:#666;">' + (p2.caption || 'Photo ' + (i + 2)) + '</span></td>';
+      } else {
+        photoHTML += '<td></td>';
+      }
+      
+      photoHTML += '</tr></table>';
+    }
   }
-  
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Site Note - ${data.jobNumber}</title>
-<style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:20px;}
-.header{border-bottom:2px solid #333;padding-bottom:15px;margin-bottom:20px;}
-.logo{max-height:60px;margin-bottom:10px;} .details{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.notes{white-space:pre-wrap;line-height:1.6;} @media print{body{padding:0;}}</style></head>
-<body><div class="header">${settings.logo ? `<img src="${settings.logo}" class="logo">` : ''}
-<h1>Site Note</h1><div class="details">
-<p><strong>Job Name:</strong> ${data.jobName}</p><p><strong>Job Number:</strong> ${data.jobNumber}</p>
-<p><strong>Technician:</strong> ${data.technician}</p><p><strong>Date:</strong> ${data.date} <strong>Time:</strong> ${data.time}</p>
-</div></div><div class="notes">${data.notes}</div>${photoHTML}</body></html>`;
-  
-  const blob = new Blob([html], { type: 'text/html' });
+
+  const notesFormatted = data.notes.replace(/\n/g, '<br>');
+
+  const doc = '<!DOCTYPE html>' +
+'<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+'<head>' +
+'<meta charset="UTF-8">' +
+'<style>' +
+'@page { margin: 2cm; }' +
+'body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }' +
+'h1 { font-size: 18pt; margin-bottom: 12pt; }' +
+'h2 { font-size: 14pt; margin-top: 18pt; margin-bottom: 12pt; }' +
+'.header-table { width: 100%; margin-bottom: 12pt; }' +
+'.logo-cell { text-align: right; }' +
+'.details td { padding: 3pt 6pt; vertical-align: top; }' +
+'.label { font-weight: bold; }' +
+'.notes { white-space: pre-wrap; margin-top: 12pt; }' +
+'.divider { border-top: 1px solid #999; margin: 12pt 0; }' +
+'</style>' +
+'</head>' +
+'<body>' +
+'<table class="header-table"><tr>' +
+'<td><h1>Site Observation Record</h1></td>' +
+(settings.logo ? '<td class="logo-cell"><img src="' + settings.logo + '" width="150" height="60" style="object-fit:contain;"></td>' : '') +
+'</tr></table>' +
+'<table class="details" style="width:100%;">' +
+'<tr><td class="label" style="width:15%;">Job Name:</td><td style="width:35%;">' + (data.jobName || '-') + '</td><td class="label" style="width:15%;">Job Number:</td><td style="width:35%;">' + (data.jobNumber || '-') + '</td></tr>' +
+'<tr><td class="label">Client:</td><td>' + (data.client || '-') + '</td><td class="label">BC Number:</td><td>' + (data.bcNumber || '-') + '</td></tr>' +
+'<tr><td class="label">Site Foreman:</td><td>' + (data.siteForeman || '-') + '</td><td class="label">Weather:</td><td>' + (data.weather || '-') + '</td></tr>' +
+'<tr><td class="label">Technician:</td><td>' + (data.technician || '-') + '</td><td class="label">Date/Time:</td><td>' + (data.date || '-') + ' ' + (data.time || '-') + '</td></tr>' +
+'</table>' +
+'<div class="divider"></div>' +
+'<h2>Description of Observations and Testing</h2>' +
+'<div class="notes">' + notesFormatted + '</div>' +
+photoHTML +
+'</body></html>';
+
+  const blob = new Blob(['\ufeff' + doc], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `SiteNote_${data.jobNumber || 'export'}_${data.date}.html`;
+  a.href = url;
+  a.download = 'SiteNote_' + (data.jobNumber || 'export') + '_' + (data.date || 'undated') + '.doc';
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportAllData() {
+  const exportData = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    settings: settings,
+    savedNotes: savedNotes
+  };
+  
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'SiteNotes_Backup_' + new Date().toISOString().split('T')[0] + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importAllData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importData = JSON.parse(e.target.result);
+      
+      if (!importData.settings && !importData.savedNotes) {
+        alert('Invalid backup file. Please select a valid Site Notes backup.');
+        return;
+      }
+      
+      const noteCount = importData.savedNotes ? importData.savedNotes.length : 0;
+      const confirmMsg = 'This will replace all your current data with:\n\n' +
+        '• ' + noteCount + ' saved note(s)\n' +
+        '• All settings (technician name, logo, templates)\n\n' +
+        'Your current data will be lost. Continue?';
+      
+      if (!confirm(confirmMsg)) {
+        event.target.value = '';
+        return;
+      }
+      
+      if (importData.settings) {
+        settings = importData.settings;
+        localStorage.setItem('siteNotesSettings', JSON.stringify(settings));
+      }
+      
+      if (importData.savedNotes) {
+        savedNotes = importData.savedNotes;
+        localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+      }
+      
+      // Refresh the UI
+      document.getElementById('settingsTechnician').value = settings.technician || '';
+      if (settings.logo) {
+        document.getElementById('logoPreview').src = settings.logo;
+        document.getElementById('logoPreview').style.display = 'block';
+      } else {
+        document.getElementById('logoPreview').style.display = 'none';
+      }
+      renderTemplateInputs();
+      renderCheckboxes();
+      renderSavedNotes();
+      document.getElementById('technician').value = settings.technician || '';
+      
+      alert('Data imported successfully! ' + noteCount + ' note(s) restored.');
+      
+    } catch (err) {
+      alert('Error reading backup file: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 init();
+
 </script>
 </body>
 </html>
