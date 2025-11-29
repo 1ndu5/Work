@@ -22,7 +22,14 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; color: #333; }
 .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
 .form-group textarea { min-height: 330px; resize: vertical; font-family: inherit; }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.quick-add-section { margin-bottom: 16px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; width: 100%; }
+.section-header { background: #f5f5f5; padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; user-select: none; }
+.section-header:hover { background: #e8e8e8; }
+.section-arrow { transition: transform 0.3s; font-size: 12px; }
+.section-arrow.collapsed { transform: rotate(-90deg); }
+.section-content { padding: 16px; display: none; }
+.section-content.active { display: block; }
 .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; }
 .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
 .checkbox-item label { cursor: pointer; font-size: 14px; flex: 1; }
@@ -33,7 +40,7 @@ h1 { font-size: 1.5rem; margin-bottom: 16px; color: #333; }
 .photo-slot input[type="file"] { display: none; }
 .photo-slot .add-btn { padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
 .photo-slot .remove-btn { padding: 6px 12px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 8px; }
-.photo-slot input[type="text"] { margin-top: 10px; }
+.photo-slot input[type="text"] { margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
 .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
 .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
 .btn-primary { background: #2196F3; color: white; }
@@ -59,6 +66,15 @@ tr:hover { background: #f9f9f9; }
 .modal-content { background: white; padding: 24px; border-radius: 8px; max-width: 500px; width: 90%; }
 .modal-content h3 { margin-bottom: 16px; }
 .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.search-dropdown { position: relative; width: 100%; }
+.search-dropdown input { width: 100%; }
+.dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 250px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.dropdown-list.active { display: block; }
+.dropdown-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+.dropdown-item:hover { background: #f5f5f5; }
+.dropdown-item.add-new { color: #2196F3; font-weight: 500; border-top: 2px solid #ddd; }
+.dropdown-item.no-results { color: #999; cursor: default; }
+.dropdown-item.no-results:hover { background: white; }
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
   .checkbox-grid { grid-template-columns: 1fr; }
@@ -74,12 +90,19 @@ tr:hover { background: #f9f9f9; }
 <div class="tabs">
 <button class="tab-btn active" onclick="showTab('new')">Edit Note</button>
 <button class="tab-btn" onclick="showTab('saved')">Saved Notes</button>
+<button class="tab-btn" onclick="showTab('jobs')">Jobs</button>
 <button class="tab-btn" onclick="showTab('settings')">Settings</button>
 </div>
 
 <div id="new" class="tab-content active">
 <div class="form-row">
-<div class="form-group"><label>Job Name</label><input type="text" id="jobName"></div>
+<div class="form-group">
+  <label>Job Name</label>
+  <div class="search-dropdown">
+    <input type="text" id="jobName" placeholder="Search or select job..." autocomplete="off" onkeyup="filterJobs()" onfocus="showJobDropdown()" onblur="hideJobDropdown()">
+    <div class="dropdown-list" id="jobDropdown"></div>
+  </div>
+</div>
 <div class="form-group"><label>Job Number</label><input type="text" id="jobNumber"></div>
 </div>
 <div class="form-row">
@@ -87,8 +110,8 @@ tr:hover { background: #f9f9f9; }
 <div class="form-group"><label>BC Number</label><input type="text" id="bcNumber"></div>
 </div>
 <div class="form-row">
+<div class="form-group"><label>Weather</label><input type="text" id="weather"></div>  
 <div class="form-group"><label>Site Foreman</label><input type="text" id="siteForeman"></div>
-<div class="form-group"><label>Weather</label><input type="text" id="weather"></div>
 </div>
 <div class="form-row">
 <div class="form-group"><label>Technician</label><input type="text" id="technician"></div>
@@ -97,7 +120,7 @@ tr:hover { background: #f9f9f9; }
 </div>
 
 <h3 style="margin: 20px 0 12px;">Quick Add Items</h3>
-<div class="checkbox-grid" id="checkboxGrid"></div>
+<div id="checkboxGrid"></div>
 
 <div class="form-group">
 <label>Site Notes</label>
@@ -108,11 +131,10 @@ tr:hover { background: #f9f9f9; }
 <div class="photo-grid" id="photoGrid"></div>
 
 <div class="btn-group">
-<button class="btn btn-success" onclick="saveNote()">💾 Save Note</button>
 <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
 <button class="btn btn-secondary" onclick="exportTXT()">📝 Export TXT</button>
 <button class="btn btn-secondary" onclick="exportDOC()">📄 Export Word</button>
-<button class="btn btn-danger" onclick="clearForm()">🗑️ Clear</button>
+<button class="btn btn-success" onclick="saveAndClose()">💾 Save & Close</button>
 </div>
 </div>
 
@@ -124,6 +146,12 @@ tr:hover { background: #f9f9f9; }
 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import Data</button>
 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importAllData(event)">
 </div>
+</div>
+
+<div id="jobs" class="tab-content">
+<h2 style="margin-bottom: 16px;">Job Database</h2>
+<button class="btn btn-success" style="margin-bottom: 20px;" onclick="showAddJobModal()">+ Add New Job</button>
+<div id="jobsTable"></div>
 </div>
 
 <div id="settings" class="tab-content">
@@ -162,29 +190,99 @@ tr:hover { background: #f9f9f9; }
 </div>
 </div>
 
+<div class="modal" id="jobModal">
+<div class="modal-content">
+<h3 id="jobModalTitle">Add New Job</h3>
+<div class="form-group">
+  <label>Job Name *</label>
+  <input type="text" id="modalJobName" placeholder="Enter job name">
+</div>
+<div class="form-group">
+  <label>Job Number *</label>
+  <input type="text" id="modalJobNumber" placeholder="Enter job number">
+</div>
+<div class="form-group">
+  <label>Client</label>
+  <input type="text" id="modalClient" placeholder="Enter client name">
+</div>
+<div class="form-group">
+  <label>BC Number</label>
+  <input type="text" id="modalBcNumber" placeholder="Enter BC number">
+</div>
+<div class="form-group">
+  <label>Site Foreman</label>
+  <input type="text" id="modalSiteForeman" placeholder="Enter site foreman name">
+</div>
+<div class="modal-btns">
+  <button class="btn btn-secondary" onclick="closeJobModal()">Cancel</button>
+  <button class="btn btn-success" onclick="saveJob()">Save Job</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="deleteJobModal">
+<div class="modal-content">
+<h3>Delete Job?</h3>
+<p>Are you sure you want to delete this job? This cannot be undone.</p>
+<div class="modal-btns">
+  <button class="btn btn-secondary" onclick="closeDeleteJobModal()">Cancel</button>
+  <button class="btn btn-danger" onclick="confirmDeleteJob()">Delete</button>
+</div>
+</div>
+</div>
+
 <script>
-const defaultTemplates = [
-  { title: "Site Stripping", text: "Observed topsoil stripping across approximate area shown on attached site plan. Topsoil had adequately been stripped with native soils exposed" },
-  { title: "Proof Roll (passed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller.  No obvious deflections were visible.  Vane shear strengths measured across the area ranged between XX and XX kPa.  Advised contractor that basecourse could be placed across this area." },
-  { title: "Proof Roll (failed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller.  Weaving of the ground was identified in the areas shown on site plan.  Trial pits were carried out in these areas to a depth of XX m which identified ..." },
-  { title: "Shallow Foundations", text: "Observed strip and pad foundation excavations along the grid lines marked on the attached site plan.  All excavations were a minimum of XXX mm deep. Shear vanes in the base ranged between XX and XX kPa which meet the design assumptions." },
-  { title: "Piled Foundations", text: "Observed bored pile excavations as shown on attached site plan.  Piles were XX m deep and XXX mm diameter.  Shear vanes in the side of the piles ranged between XX and XX kPa and in the base ranged between XX and XX kPa which meet the design assumptions." },
-  { title: "Clay Fill Testing", text: "Approximately XXX mm of clay has been placed across the fill area shown on the attached site plan since last visit.  Shear vane testing across the fill area ranged from XX to XX kPa.  XX air voids samples were collected from locations shown on attached site plan." },
-  { title: "Clegg Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit.  Clegg Hammer testing was carried out which returned CIV values ranging between XX and XX which meet the required specification." },
-  { title: "Retaining Walls", text: "Observed the retaining wall pile holes along the length marked on the attached plan.  Pile hole depths ranged between XX and XX m.  Shear vanes in the cut face ranged between XX and XX kPa.  Shear vanes in the pile holes ranged between XX and XX kPa." },
-  { title: "Hardfill NDM Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. XXX NDM tests were carried out in the locations shown on the site plan.  These returned results ranging between XX and XX % of MDD which meet the required specification." },
-  { title: "Follow up with CAN", text: "Discussed potential remedial actions with contractor.  Our recommendations will be issued in a separate CAN." }
-];
+const defaultTemplates = {
+  earthworks: [
+    { title: "Site Stripping", text: "Observed topsoil stripping across approximate area shown on attached site plan. Topsoil had adequately been stripped with native soils exposed" },
+    { title: "Proof Roll (passed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller. No obvious deflections were visible. Vane shear strengths measured across the area ranged between XX and XX kPa. Advised contractor that basecourse could be placed across this area." },
+    { title: "Proof Roll (failed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller. Weaving of the ground was identified in the areas shown on site plan. Trial pits were carried out in these areas to a depth of XX m which identified ..." },
+    { title: "Clay Fill Testing", text: "Approximately XXX mm of clay has been placed across the fill area shown on the attached site plan since last visit. Shear vane testing across the fill area ranged from XX to XX kPa. XX air voids samples were collected from locations shown on attached site plan." },
+    { title: "Clegg Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. Clegg Hammer testing was carried out which returned CIV values ranging between XX and XX which meet the required specification." },
+    { title: "Hardfill NDM Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. XXX NDM tests were carried out in the locations shown on the site plan. These returned results ranging between XX and XX % of MDD which meet the required specification." },
+    { title: "Retaining Walls", text: "Observed the retaining wall pile holes along the length marked on the attached plan. Pile hole depths ranged between XX and XX m. Shear vanes in the cut face ranged between XX and XX kPa. Shear vanes in the pile holes ranged between XX and XX kPa." },
+    { title: "Cut Batter Inspection", text: "Observed cut batters along the alignment shown on the attached site plan. Cut batters were excavated to a maximum depth of XX m. Shear vane testing in the cut face ranged between XX and XX kPa which meets the design assumptions." },
+    { title: "Drainage Installation", text: "Observed installation of drainage across the area shown on the attached site plan. Drainage pipes were installed at depths ranging from XX to XX m below finished ground level. Pipe bedding material was adequately compacted." },
+    { title: "Aggregate Pier Installation", text: "Observed installation of aggregate piers at locations shown on attached site plan. Piers were installed to depths ranging from XX to XX m. Pier diameters ranged from XXX to XXX mm. Compaction energy met specification requirements." }
+  ],
+  building: [
+    { title: "Shallow Foundations", text: "Observed strip and pad foundation excavations along the grid lines marked on the attached site plan. All excavations were a minimum of XXX mm deep. Shear vanes in the base ranged between XX and XX kPa which meet the design assumptions." },
+    { title: "Piled Foundations", text: "Observed bored pile excavations as shown on attached site plan. Piles were XX m deep and XXX mm diameter. Shear vanes in the side of the piles ranged between XX and XX kPa and in the base ranged between XX and XX kPa which meet the design assumptions." },
+    { title: "Slab on Grade Preparation", text: "Observed preparation of slab on grade subgrade across the area shown on attached site plan. Subgrade was proof rolled and showed no deflections. Shear vane testing ranged from XX to XX kPa. Vapor barrier and reinforcing mesh were installed as per specification." },
+    { title: "Concrete Pour", text: "Observed concrete pour for [foundation/slab/wall] as shown on attached site plan. Concrete was placed in accordance with specification. Slump test results were XX mm. Concrete samples were taken for compression testing." },
+    { title: "Masonry Wall Construction", text: "Observed construction of masonry walls along grid lines shown on attached site plan. Masonry units were laid in accordance with specification. Mortar joints were properly tooled. Wall ties and reinforcement installed as per drawings." },
+    { title: "Structural Steel Erection", text: "Observed erection of structural steel members as shown on attached site plan. All connections were made in accordance with specifications. Bolts were torqued to required values. Alignment and plumbness were within tolerance." },
+    { title: "Timber Framing", text: "Observed timber framing construction as shown on attached site plan. All timber members met grade requirements. Connections were made in accordance with specifications. Bracing and hold-downs installed as per drawings." },
+    { title: "Waterproofing Application", text: "Observed application of waterproofing membrane to [foundation walls/slab] as shown on attached site plan. Surface preparation was adequate. Membrane application followed manufacturer specifications. All joints and penetrations properly sealed." },
+    { title: "Backfill Operations", text: "Observed backfilling operations around [foundations/retaining walls] as shown on attached site plan. Backfill material met specification requirements. Material was placed in XXX mm lifts and compacted. No damage observed to waterproofing." },
+    { title: "Floor System Installation", text: "Observed installation of floor system as shown on attached site plan. All components met specification requirements. Installation followed manufacturer recommendations. Adequate bearing and support provided at all locations." }
+  ],
+  other: [
+    { title: "Follow up with CAN", text: "Discussed potential remedial actions with contractor. Our recommendations will be issued in a separate CAN." },
+    { title: "Materials Testing", text: "Collected XX samples from locations shown on attached site plan. Samples will be tested at our laboratory for [specify tests]. Results will be provided in separate correspondence." },
+    { title: "Survey Control", text: "Verified survey control points as shown on attached site plan. All elevations were within tolerance of design levels. Offset stakes were installed at locations shown on plan." },
+    { title: "Pre-construction Meeting", text: "Attended pre-construction meeting with [attendees]. Discussed project scope, timeline, and key requirements. Action items were assigned and documented." },
+    { title: "Progress Inspection", text: "General site inspection conducted. Work is progressing in accordance with project schedule. No significant issues observed. Contractor continues to follow approved construction methodology." },
+    { title: "Safety Observation", text: "Site safety conditions observed. [Adequate safety measures in place / Safety concerns noted and discussed with site foreman]. Recommended [any corrective actions if applicable]." }
+  ]
+};
 
 let settings = JSON.parse(localStorage.getItem('siteNotesSettings')) || {
   technician: '',
   logo: null,
-  templates: [...defaultTemplates]
+  templates: {
+    earthworks: [...defaultTemplates.earthworks],
+    building: [...defaultTemplates.building],
+    other: [...defaultTemplates.other]
+  }
 };
 let savedNotes = JSON.parse(localStorage.getItem('siteNotesSaved')) || [];
+let savedJobs = JSON.parse(localStorage.getItem('siteNotesJobs')) || [];
 let photos = [null, null, null, null, null, null];
 let editingNoteId = null;
 let deleteNoteId = null;
+let editingJobId = null;
+let deleteJobId = null;
 
 function init() {
   document.getElementById('settingsTechnician').value = settings.technician;
@@ -198,6 +296,7 @@ function init() {
   renderSavedNotes();
   setDefaultDateTime();
   document.getElementById('technician').value = settings.technician;
+  renderJobs();
 }
 
 function setDefaultDateTime() {
@@ -216,36 +315,136 @@ function showTab(tab) {
 
 function renderTemplateInputs() {
   const container = document.getElementById('templateInputs');
-  container.innerHTML = settings.templates.map((t, i) => `
+  
+  let html = '';
+  
+  // Earthworks section
+  html += '<div class="settings-section"><h3>Earthworks Templates (10)</h3>';
+  html += settings.templates.earthworks.map((t, i) => `
     <div class="template-item" style="flex-direction:column;align-items:stretch;margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:6px;">
       <div style="display:flex;gap:10px;margin-bottom:8px;">
         <span style="min-width:30px;">${i + 1}.</span>
-        <input type="text" value="${t.title}" placeholder="Title" onchange="updateTemplate(${i}, 'title', this.value)">
+        <input type="text" value="${t.title}" placeholder="Title" onchange="updateTemplate('earthworks', ${i}, 'title', this.value)">
       </div>
-      <textarea style="width:100%;min-height:60px;margin-left:40px;width:calc(100% - 40px);" placeholder="Standard text..." onchange="updateTemplate(${i}, 'text', this.value)">${t.text}</textarea>
+      <textarea style="width:100%;min-height:60px;margin-left:40px;width:calc(100% - 40px);" placeholder="Standard text..." onchange="updateTemplate('earthworks', ${i}, 'text', this.value)">${t.text}</textarea>
     </div>
   `).join('');
+  html += '</div>';
+  
+  // Building Construction section
+  html += '<div class="settings-section"><h3>Building Construction Templates (10)</h3>';
+  html += settings.templates.building.map((t, i) => `
+    <div class="template-item" style="flex-direction:column;align-items:stretch;margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:6px;">
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="min-width:30px;">${i + 1}.</span>
+        <input type="text" value="${t.title}" placeholder="Title" onchange="updateTemplate('building', ${i}, 'title', this.value)">
+      </div>
+      <textarea style="width:100%;min-height:60px;margin-left:40px;width:calc(100% - 40px);" placeholder="Standard text..." onchange="updateTemplate('building', ${i}, 'text', this.value)">${t.text}</textarea>
+    </div>
+  `).join('');
+  html += '</div>';
+  
+  // Other section
+  html += '<div class="settings-section"><h3>Other Templates (6)</h3>';
+  html += settings.templates.other.map((t, i) => `
+    <div class="template-item" style="flex-direction:column;align-items:stretch;margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:6px;">
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="min-width:30px;">${i + 1}.</span>
+        <input type="text" value="${t.title}" placeholder="Title" onchange="updateTemplate('other', ${i}, 'title', this.value)">
+      </div>
+      <textarea style="width:100%;min-height:60px;margin-left:40px;width:calc(100% - 40px);" placeholder="Standard text..." onchange="updateTemplate('other', ${i}, 'text', this.value)">${t.text}</textarea>
+    </div>
+  `).join('');
+  html += '</div>';
+  
+  container.innerHTML = html;
 }
 
-function updateTemplate(index, field, value) {
-  settings.templates[index][field] = value;
+function updateTemplate(category, index, field, value) {
+  settings.templates[category][index][field] = value;
 }
 
 function renderCheckboxes() {
   const container = document.getElementById('checkboxGrid');
-  container.innerHTML = settings.templates.map((t, i) => `
-    <div class="checkbox-item">
-      <input type="checkbox" id="cb${i}" onchange="handleCheckbox(${i}, this.checked)">
-      <label for="cb${i}">${t.title}</label>
+  
+  let html = '';
+  
+  // Earthworks section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('earthworks')">
+        <span>Earthworks</span>
+        <span class="section-arrow" id="arrow-earthworks">▼</span>
+      </div>
+      <div class="section-content" id="content-earthworks">
+        <div class="checkbox-grid">
+          ${settings.templates.earthworks.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-earthworks-${i}" onchange="handleCheckbox('earthworks', ${i}, this.checked)">
+              <label for="cb-earthworks-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
     </div>
-  `).join('');
+  `;
+  
+  // Building Construction section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('building')">
+        <span>Building Construction</span>
+        <span class="section-arrow" id="arrow-building">▼</span>
+      </div>
+      <div class="section-content" id="content-building">
+        <div class="checkbox-grid">
+          ${settings.templates.building.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-building-${i}" onchange="handleCheckbox('building', ${i}, this.checked)">
+              <label for="cb-building-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Other section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('other')">
+        <span>Other</span>
+        <span class="section-arrow" id="arrow-other">▼</span>
+      </div>
+      <div class="section-content" id="content-other">
+        <div class="checkbox-grid">
+          ${settings.templates.other.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-other-${i}" onchange="handleCheckbox('other', ${i}, this.checked)">
+              <label for="cb-other-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
 }
 
-function handleCheckbox(index, checked) {
+function toggleSection(section) {
+  const content = document.getElementById('content-' + section);
+  const arrow = document.getElementById('arrow-' + section);
+  
+  content.classList.toggle('active');
+  arrow.classList.toggle('collapsed');
+}
+
+function handleCheckbox(category, index, checked) {
   if (checked) {
     const textarea = document.getElementById('siteNotes');
     const currentText = textarea.value;
-    const newText = settings.templates[index].text;
+    const newText = settings.templates[category][index].text;
     textarea.value = currentText ? currentText + '\n\n' + newText : newText;
   }
 }
@@ -315,15 +514,37 @@ function removeLogo() {
 
 function saveSettings() {
   settings.technician = document.getElementById('settingsTechnician').value;
-  // Read all template values from the inputs
-  document.querySelectorAll('#templateInputs .template-item').forEach((item, i) => {
+  
+  // Read earthworks templates
+  document.querySelectorAll('#templateInputs .settings-section')[0].querySelectorAll('.template-item').forEach((item, i) => {
     const titleInput = item.querySelector('input[type="text"]');
     const textArea = item.querySelector('textarea');
-    settings.templates[i] = {
+    settings.templates.earthworks[i] = {
       title: titleInput.value,
       text: textArea.value
     };
   });
+  
+  // Read building templates
+  document.querySelectorAll('#templateInputs .settings-section')[1].querySelectorAll('.template-item').forEach((item, i) => {
+    const titleInput = item.querySelector('input[type="text"]');
+    const textArea = item.querySelector('textarea');
+    settings.templates.building[i] = {
+      title: titleInput.value,
+      text: textArea.value
+    };
+  });
+  
+  // Read other templates
+  document.querySelectorAll('#templateInputs .settings-section')[2].querySelectorAll('.template-item').forEach((item, i) => {
+    const titleInput = item.querySelector('input[type="text"]');
+    const textArea = item.querySelector('textarea');
+    settings.templates.other[i] = {
+      title: titleInput.value,
+      text: textArea.value
+    };
+  });
+  
   localStorage.setItem('siteNotesSettings', JSON.stringify(settings));
   renderCheckboxes();
 }
@@ -356,27 +577,65 @@ function saveNote() {
   editingNoteId = data.id;
 }
 
+function saveAndClose() {
+  const data = getFormData();
+  if (!data.jobName && !data.notes) { 
+    alert('Please add some content before saving.'); 
+    return; 
+  }
+  
+  const existingIndex = savedNotes.findIndex(n => n.id === data.id);
+  if (existingIndex >= 0) savedNotes[existingIndex] = data;
+  else savedNotes.unshift(data);
+  localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+  
+  alert('Note saved successfully!');
+  clearForm();
+}
+
 function renderSavedNotes() {
   const container = document.getElementById('savedNotesTable');
   if (savedNotes.length === 0) {
     container.innerHTML = '<p style="color:#666;">No saved notes yet.</p>';
     return;
   }
-  container.innerHTML = `<table>
-    <thead><tr><th>Date</th><th>Job Number</th><th>Job Name</th><th>Preview</th><th>Actions</th></tr></thead>
-    <tbody>${savedNotes.map(n => `
-      <tr>
-        <td>${n.date || '-'}</td>
-        <td>${n.jobNumber || '-'}</td>
-        <td class="clickable" onclick="loadNote(${n.id})">${n.jobName || '-'}</td>
-        <td class="note-preview">${n.notes ? n.notes.substring(0, 50) : '-'}</td>
-        <td class="action-btns">
-          <button class="btn btn-primary" onclick="loadNote(${n.id})">Edit</button>
-          <button class="btn btn-danger" onclick="showDeleteModal(${n.id})">Delete</button>
-        </td>
-      </tr>
-    `).join('')}</tbody>
-  </table>`;
+  
+  // Check if we're on a mobile device (screen width < 720px)
+  const isMobile = window.innerWidth < 720;
+  
+  if (isMobile) {
+    // Mobile layout - only Date, Job Name, Actions
+    container.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Job Name</th><th>Actions</th></tr></thead>
+      <tbody>${savedNotes.map(n => `
+        <tr>
+          <td>${n.date || '-'}</td>
+          <td class="clickable" onclick="loadNote(${n.id})">${n.jobName || '-'}</td>
+          <td class="action-btns">
+            <button class="btn btn-primary" onclick="loadNote(${n.id})">Edit</button>
+            <button class="btn btn-danger" onclick="showDeleteModal(${n.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  } else {
+    // Desktop layout - all columns
+    container.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Job Number</th><th>Job Name</th><th>Preview</th><th>Actions</th></tr></thead>
+      <tbody>${savedNotes.map(n => `
+        <tr>
+          <td>${n.date || '-'}</td>
+          <td>${n.jobNumber || '-'}</td>
+          <td class="clickable" onclick="loadNote(${n.id})">${n.jobName || '-'}</td>
+          <td class="note-preview">${n.notes ? n.notes.substring(0, 50) : '-'}</td>
+          <td class="action-btns">
+            <button class="btn btn-primary" onclick="loadNote(${n.id})">Edit</button>
+            <button class="btn btn-danger" onclick="showDeleteModal(${n.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
 }
 
 function loadNote(id) {
@@ -430,6 +689,191 @@ function clearForm() {
   document.querySelectorAll('.checkbox-item input').forEach(cb => cb.checked = false);
   renderPhotoSlots();
   setDefaultDateTime();
+}
+
+// ============================================================================
+// JOB MANAGEMENT FUNCTIONS
+// ============================================================================
+
+function renderJobs() {
+  const container = document.getElementById('jobsTable');
+  if (savedJobs.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No jobs saved yet.</p>';
+    return;
+  }
+  
+  // Sort by job number for display in table
+  const sortedJobs = [...savedJobs].sort((a, b) => {
+    const numA = a.jobNumber || '';
+    const numB = b.jobNumber || '';
+    return numA.localeCompare(numB, undefined, { numeric: true });
+  });
+  
+  container.innerHTML = `<table>
+    <thead><tr><th>Job Number</th><th>Job Name</th><th>Actions</th></tr></thead>
+    <tbody>${sortedJobs.map(j => `
+      <tr>
+        <td>${j.jobNumber || '-'}</td>
+        <td>${j.jobName || '-'}</td>
+        <td class="action-btns">
+          <button class="btn btn-primary" onclick="showEditJobModal(${j.id})">Edit</button>
+          <button class="btn btn-danger" onclick="showDeleteJobModal(${j.id})">Delete</button>
+        </td>
+      </tr>
+    `).join('')}</tbody>
+  </table>`;
+}
+
+function showAddJobModal() {
+  editingJobId = null;
+  document.getElementById('jobModalTitle').textContent = 'Add New Job';
+  document.getElementById('modalJobName').value = '';
+  document.getElementById('modalJobNumber').value = '';
+  document.getElementById('modalClient').value = '';
+  document.getElementById('modalBcNumber').value = '';
+  document.getElementById('modalSiteForeman').value = '';
+  document.getElementById('jobModal').classList.add('active');
+}
+
+function showEditJobModal(id) {
+  const job = savedJobs.find(j => j.id === id);
+  if (!job) return;
+  
+  editingJobId = id;
+  document.getElementById('jobModalTitle').textContent = 'Edit Job';
+  document.getElementById('modalJobName').value = job.jobName || '';
+  document.getElementById('modalJobNumber').value = job.jobNumber || '';
+  document.getElementById('modalClient').value = job.client || '';
+  document.getElementById('modalBcNumber').value = job.bcNumber || '';
+  document.getElementById('modalSiteForeman').value = job.siteForeman || '';
+  document.getElementById('jobModal').classList.add('active');
+}
+
+function closeJobModal() {
+  document.getElementById('jobModal').classList.remove('active');
+  editingJobId = null;
+}
+
+function saveJob() {
+  const jobName = document.getElementById('modalJobName').value.trim();
+  const jobNumber = document.getElementById('modalJobNumber').value.trim();
+  const client = document.getElementById('modalClient').value.trim();
+  const bcNumber = document.getElementById('modalBcNumber').value.trim();
+  const siteForeman = document.getElementById('modalSiteForeman').value.trim();
+  
+  // Validation
+  if (!jobName || !jobNumber) {
+    alert('Job Name and Job Number are required.');
+    return;
+  }
+  
+  // Check for duplicate job number (exclude current job if editing)
+  const duplicate = savedJobs.find(j => 
+    j.jobNumber === jobNumber && j.id !== editingJobId
+  );
+  
+  if (duplicate) {
+    alert('A job with this Job Number already exists. Please use a unique Job Number.');
+    return;
+  }
+  
+  const jobData = {
+    id: editingJobId || Date.now(),
+    jobName,
+    jobNumber,
+    client,
+    bcNumber,
+    siteForeman
+  };
+  
+  const existingIndex = savedJobs.findIndex(j => j.id === jobData.id);
+  if (existingIndex >= 0) {
+    savedJobs[existingIndex] = jobData;
+  } else {
+    savedJobs.push(jobData);
+  }
+  
+  localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+  renderJobs();
+  closeJobModal();
+  alert('Job saved successfully!');
+}
+
+function showDeleteJobModal(id) {
+  deleteJobId = id;
+  document.getElementById('deleteJobModal').classList.add('active');
+}
+
+function closeDeleteJobModal() {
+  document.getElementById('deleteJobModal').classList.remove('active');
+  deleteJobId = null;
+}
+
+function confirmDeleteJob() {
+  savedJobs = savedJobs.filter(j => j.id !== deleteJobId);
+  localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+  closeDeleteJobModal();
+  renderJobs();
+}
+
+// ============================================================================
+// JOB DROPDOWN FUNCTIONS
+// ============================================================================
+
+function filterJobs() {
+  const input = document.getElementById('jobName').value.toLowerCase();
+  const dropdown = document.getElementById('jobDropdown');
+  
+  // Sort jobs alphabetically by name for dropdown
+  const sortedJobs = [...savedJobs].sort((a, b) => 
+    (a.jobName || '').localeCompare(b.jobName || '')
+  );
+  
+  const filtered = sortedJobs.filter(j => 
+    (j.jobName || '').toLowerCase().includes(input) ||
+    (j.jobNumber || '').toLowerCase().includes(input)
+  );
+  
+  let html = '';
+  
+  if (filtered.length > 0) {
+    html = filtered.map(j => 
+      `<div class="dropdown-item" onmousedown="selectJob(${j.id})">
+        <strong>${j.jobName}</strong><br>
+        <span style="font-size:12px;color:#666;">${j.jobNumber}</span>
+      </div>`
+    ).join('');
+  } else if (input.length > 0) {
+    html = '<div class="dropdown-item no-results">No jobs found</div>';
+  }
+  
+  html += '<div class="dropdown-item add-new" onmousedown="showAddJobModal()">+ Add New Job</div>';
+  
+  dropdown.innerHTML = html;
+  dropdown.classList.add('active');
+}
+
+function showJobDropdown() {
+  filterJobs();
+}
+
+function hideJobDropdown() {
+  setTimeout(() => {
+    document.getElementById('jobDropdown').classList.remove('active');
+  }, 200);
+}
+
+function selectJob(id) {
+  const job = savedJobs.find(j => j.id === id);
+  if (!job) return;
+  
+  document.getElementById('jobName').value = job.jobName || '';
+  document.getElementById('jobNumber').value = job.jobNumber || '';
+  document.getElementById('client').value = job.client || '';
+  document.getElementById('bcNumber').value = job.bcNumber || '';
+  document.getElementById('siteForeman').value = job.siteForeman || '';
+  
+  document.getElementById('jobDropdown').classList.remove('active');
 }
 
 async function exportPDF() {
@@ -486,19 +930,21 @@ async function exportPDF() {
   pdf.setFontSize(11);
   pdf.setFont(undefined, "normal");
 
-  const leftCol = [
-    `Job Name: ${data.jobName || "-"}`,
-    `Client: ${data.client || "-"}`,
-    `Site Foreman: ${data.siteForeman || "-"}`,
-    `Technician: ${data.technician || "-"}`
-  ];
+const leftCol = [
+  `Job Name: ${data.jobName || "-"}`,
+  `Client: ${data.client || "-"}`,
+  `Site Foreman: ${data.siteForeman || "-"}`,
+  `Technician: ${data.technician || "-"}`,
+  `Reviewed:     `
+];
 
-  const rightCol = [
-    `Job Number: ${data.jobNumber || "-"}`,
-    `BC Number: ${data.bcNumber || "-"}`,
-    `Weather: ${data.weather || "-"}`,
-    `Date: ${data.date}   Time: ${data.time}`
-  ];
+const rightCol = [
+  `Job Number: ${data.jobNumber || "-"}`,
+  `BC Number: ${data.bcNumber || "-"}`,
+  `Weather: ${data.weather || "-"}`,
+  `Date: ${data.date}`,
+  `Time: ${data.time}`
+];
 
   leftCol.forEach((t, i) => {
     pdf.text(t, margin, y + i * 6);
@@ -536,33 +982,38 @@ async function exportPDF() {
   // ---------------------------------------------------------------------------
   // 4. PHOTO GALLERY
   if (data.photos.length > 0) {
+    // Load all images first
+    const imagePromises = data.photos.map(photo => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = photo.data;
+      });
+    });
+
+    const loadedImages = await Promise.all(imagePromises);
+
     pdf.addPage();
     y = margin;
 
     y = sectionHeader("Site Photos", y);
 
-    const cols = 2;
-    const colGap = 10;
-    const cellW = (pageW - margin * 2 - colGap) / 2;
-
-    const imgMaxW = cellW;
-    const imgMaxH = 55;
-
-    let col = 0;
+    const imgMaxW = pageW - margin * 2;
+    const imgMaxH = 100;
 
     for (let i = 0; i < data.photos.length; i++) {
       const photo = data.photos[i];
-      const x = margin + col * (cellW + colGap);
+      const img = loadedImages[i];
 
-      // If starting a new row would exceed page, add new page
-      if (col === 0 && y + imgMaxH + 25 > pageH - margin) {
+      if (!img) continue; // Skip if image failed to load
+
+      // Add new page for each pair of photos (after photo index 0, 2, 4)
+      if (i > 0 && i % 2 === 0) {
         pdf.addPage();
         y = margin;
+        y = sectionHeader("Site Photos (continued)", y);
       }
-
-      // Load image to read dimensions
-      const img = new Image();
-      img.src = photo.data;
 
       // Calculate scaled dimensions
       const ratio = img.naturalWidth / img.naturalHeight;
@@ -574,27 +1025,22 @@ async function exportPDF() {
         w = h * ratio;
       }
 
-      // Center image horizontally within its cell
-      const offsetX = (cellW - w) / 2;
+      // Center image horizontally on page
+      const offsetX = (pageW - w) / 2;
 
       // Render image
-      pdf.addImage(photo.data, "JPEG", x + offsetX, y, w, h);
+      pdf.addImage(photo.data, "JPEG", offsetX, y, w, h);
 
       // Caption (wrapped)
       const caption = photo.caption || `Photo ${i + 1}`;
-      const wrappedCaption = pdf.splitTextToSize(caption, cellW);
+      const wrappedCaption = pdf.splitTextToSize(caption, pageW - margin * 2);
 
-      pdf.setFontSize(9);
+      pdf.setFontSize(10);
       pdf.setFont(undefined, "normal");
-      pdf.text(wrappedCaption, x, y + h + 6);
+      pdf.text(wrappedCaption, margin, y + h + 8);
 
-      // Move to next column
-      col++;
-
-      if (col === cols) {
-        col = 0;
-        y += imgMaxH + 22; // row height
-      }
+      // Move down for next photo (spacing between photos on same page)
+      y += h + 20;
     }
   }
 
@@ -646,29 +1092,24 @@ ${data.notes}`;
 function exportDOC() {
   const data = getFormData();
   
-  let photoHTML = '';
+let photoHTML = '';
   if (data.photos.length > 0) {
     photoHTML = '<br clear="all" style="page-break-before:always;"><h2>Site Photos</h2>';
-    for (let i = 0; i < data.photos.length; i += 2) {
-      photoHTML += '<table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><tr>';
+    
+    for (let i = 0; i < data.photos.length; i++) {
+      const photo = data.photos[i];
       
-      // First photo in row
-      const p1 = data.photos[i];
-      photoHTML += '<td style="width:50%;padding:10px;text-align:center;vertical-align:top;">' +
-        '<img src="' + p1.data + '" height="170"><br>' +
-        '<span style="font-size:10pt;color:#666;">' + (p1.caption || 'Photo ' + (i + 1)) + '</span></td>';
-      
-      // Second photo in row (if exists)
-      if (data.photos[i + 1]) {
-        const p2 = data.photos[i + 1];
-        photoHTML += '<td style="width:50%;padding:10px;text-align:center;vertical-align:top;">' +
-          '<img src="' + p2.data + '" height="170"><br>' +
-          '<span style="font-size:10pt;color:#666;">' + (p2.caption || 'Photo ' + (i + 2)) + '</span></td>';
-      } else {
-        photoHTML += '<td></td>';
+      // Add page break after every 2 photos (except before the first photo)
+      if (i > 0 && i % 2 === 0) {
+        photoHTML += '<br clear="all" style="page-break-before:always;"><h2>Site Photos (continued)</h2>';
       }
       
-      photoHTML += '</tr></table>';
+      // Each photo in a table with fixed height
+      photoHTML += '<table style="width:100%;border-collapse:collapse;margin-bottom:30px;"><tr>' +
+        '<td style="width:100%;padding:10px;text-align:center;vertical-align:top;">' +
+        '<img src="' + photo.data + '" height="360" style="max-width:100%;"><br>' +
+        '<span style="font-size:10pt;color:#666;">' + (photo.caption || 'Photo ' + (i + 1)) + '</span>' +
+        '</td></tr></table>';
     }
   }
 
@@ -700,7 +1141,8 @@ function exportDOC() {
 '<tr><td class="label" style="width:15%;">Job Name:</td><td style="width:35%;">' + (data.jobName || '-') + '</td><td class="label" style="width:15%;">Job Number:</td><td style="width:35%;">' + (data.jobNumber || '-') + '</td></tr>' +
 '<tr><td class="label">Client:</td><td>' + (data.client || '-') + '</td><td class="label">BC Number:</td><td>' + (data.bcNumber || '-') + '</td></tr>' +
 '<tr><td class="label">Site Foreman:</td><td>' + (data.siteForeman || '-') + '</td><td class="label">Weather:</td><td>' + (data.weather || '-') + '</td></tr>' +
-'<tr><td class="label">Technician:</td><td>' + (data.technician || '-') + '</td><td class="label">Date/Time:</td><td>' + (data.date || '-') + ' ' + (data.time || '-') + '</td></tr>' +
+'<tr><td class="label">Technician:</td><td>' + (data.technician || '-') + '</td><td class="label">Date:</td><td>' + (data.date || '-') + '</td></tr>' +
+'<tr><td class="label">Reviewed:</td><td colspan="1"></td><td class="label">Time:</td><td>' + (data.time || '-') + '</td></tr>' +
 '</table>' +
 '<div class="divider"></div>' +
 '<h2>Description of Observations and Testing</h2>' +
@@ -721,10 +1163,11 @@ photoHTML +
 
 function exportAllData() {
   const exportData = {
-    version: 1,
+    version: 2,
     exportDate: new Date().toISOString(),
     settings: settings,
-    savedNotes: savedNotes
+    savedNotes: savedNotes,
+    savedJobs: savedJobs
   };
   
   const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -747,14 +1190,16 @@ function importAllData(event) {
     try {
       const importData = JSON.parse(e.target.result);
       
-      if (!importData.settings && !importData.savedNotes) {
+      if (!importData.settings && !importData.savedNotes && !importData.savedJobs) {
         alert('Invalid backup file. Please select a valid Site Notes backup.');
         return;
       }
       
       const noteCount = importData.savedNotes ? importData.savedNotes.length : 0;
+      const jobCount = importData.savedJobs ? importData.savedJobs.length : 0;
       const confirmMsg = 'This will replace all your current data with:\n\n' +
         '• ' + noteCount + ' saved note(s)\n' +
+        '• ' + jobCount + ' saved job(s)\n' +
         '• All settings (technician name, logo, templates)\n\n' +
         'Your current data will be lost. Continue?';
       
@@ -773,6 +1218,11 @@ function importAllData(event) {
         localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
       }
       
+      if (importData.savedJobs) {
+        savedJobs = importData.savedJobs;
+        localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+      }
+      
       // Refresh the UI
       document.getElementById('settingsTechnician').value = settings.technician || '';
       if (settings.logo) {
@@ -784,9 +1234,10 @@ function importAllData(event) {
       renderTemplateInputs();
       renderCheckboxes();
       renderSavedNotes();
+      renderJobs();
       document.getElementById('technician').value = settings.technician || '';
       
-      alert('Data imported successfully! ' + noteCount + ' note(s) restored.');
+      alert('Data imported successfully! ' + noteCount + ' note(s) and ' + jobCount + ' job(s) restored.');
       
     } catch (err) {
       alert('Error reading backup file: ' + err.message);
