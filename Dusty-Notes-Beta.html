@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Notes</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; }
+.container { max-width: 900px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.5rem; margin-bottom: 16px; color: #333; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; width: 100%; }
+.tab-btn { flex: 1; }
+.tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 6px; font-size: 14px; }
+.tab-btn.active { background: #2196F3; color: white; }
+.tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.tab-content.active { display: block; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; }
+.form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.form-group textarea { min-height: 330px; resize: vertical; font-family: inherit; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.quick-add-section { margin-bottom: 16px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; width: 100%; }
+.section-header { background: #f5f5f5; padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; user-select: none; }
+.section-header:hover { background: #e8e8e8; }
+.section-arrow { transition: transform 0.3s; font-size: 12px; }
+.section-arrow.collapsed { transform: rotate(-90deg); }
+.section-content { padding: 16px; display: none; }
+.section-content.active { display: block; }
+.checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; }
+.checkbox-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+.checkbox-item label { cursor: pointer; font-size: 14px; flex: 1; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.photo-slot { border: 2px dashed #ddd; border-radius: 8px; padding: 16px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+.photo-slot.has-photo { border-style: solid; border-color: #2196F3; }
+.photo-slot img { max-width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; cursor: move; }
+.photo-slot.drag-source { opacity: 0.5; }
+.photo-slot.drag-target { border-color: #4CAF50; background-color: rgba(76, 175, 80, 0.1); }
+.photo-slot input[type="file"] { display: none; }
+.photo-slot .add-btn { padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+.photo-slot .remove-btn { padding: 6px 12px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 8px; }
+.photo-slot input[type="text"] { margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.photo-slot.drag-over {  border: 3px dashed #26a69a;  background-color: rgba(38, 166, 154, 0.15); }
+.btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+.btn-primary { background: #2196F3; color: white; }
+.btn-success { background: #4CAF50; color: white; }
+.btn-secondary { background: #757575; color: white; }
+.btn-danger { background: #f44336; color: white; }
+.btn-teal { background: #00897B; color: white; }
+.settings-section { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #eee; }
+.settings-section h3 { margin-bottom: 16px; color: #333; }
+.template-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+.template-item input { flex: 1; }
+.template-item span { min-width: 30px; color: #666; }
+.logo-preview { max-width: 200px; max-height: 100px; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f5f5f5; font-weight: 600; }
+tr:hover { background: #f9f9f9; }
+.clickable { cursor: pointer; color: #2196F3; }
+.note-preview { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #666; font-size: 13px; }
+.action-btns { display: flex; gap: 6px; }
+.action-btns .btn { padding: 6px 12px; font-size: 12px; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+.modal.active { display: flex; }
+.modal-content { background: white; padding: 24px; border-radius: 8px; max-width: 500px; width: 90%; }
+.modal-content h3 { margin-bottom: 16px; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.search-dropdown { position: relative; width: 100%; }
+.search-dropdown input { width: 100%; }
+.dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 250px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.dropdown-list.active { display: block; }
+.dropdown-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+.dropdown-item:hover { background: #f5f5f5; }
+.dropdown-item.add-new { color: #2196F3; font-weight: 500; border-top: 2px solid #ddd; }
+.dropdown-item.no-results { color: #999; cursor: default; }
+.dropdown-item.no-results:hover { background: white; }
+.photo-drop-zone { position: relative; min-height: 200px; }
+.drop-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(33, 150, 243, 0.15); color: black; font-size: 24px; font-weight: bold; justify-content: center; align-items: center; border-radius: 8px; z-index: 10; pointer-events: none; }
+.drop-overlay.active { display: flex; }
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .checkbox-grid { grid-template-columns: 1fr; }
+  .photo-grid { grid-template-columns: 1fr; }
+  table { font-size: 13px; }
+  th, td { padding: 8px 4px; }
+  .drag-hint { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📋 Site Notes</h1>
+<div class="tabs">
+<button class="tab-btn active" onclick="showTab('new')">Edit Note</button>
+<button class="tab-btn" onclick="showTab('saved')">Saved Notes</button>
+<button class="tab-btn" onclick="showTab('jobs')">Jobs</button>
+<button class="tab-btn" onclick="showTab('settings')">Settings</button>
+</div>
+
+<div id="new" class="tab-content active">
+<div class="form-row">
+<div class="form-group">
+  <label>Job Name</label>
+  <div class="search-dropdown">
+    <input type="text" id="jobName" placeholder="Search or select job..." autocomplete="off" onkeyup="filterJobs()" onfocus="showJobDropdown()" onblur="hideJobDropdown()">
+    <div class="dropdown-list" id="jobDropdown"></div>
+  </div>
+</div>
+<div class="form-group"><label>Job Number</label><input type="text" id="jobNumber"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Client</label><input type="text" id="client"></div>
+<div class="form-group"><label>BC Number</label><input type="text" id="bcNumber"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Weather</label><input type="text" id="weather"></div>  
+<div class="form-group"><label>Site Foreman</label><input type="text" id="siteForeman"></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Technician</label><input type="text" id="technician"></div>
+<div class="form-group"><label>Date</label><input type="date" id="noteDate"></div>
+<div class="form-group"><label>Time</label><input type="time" id="noteTime"></div>
+</div>
+
+<h3 style="margin: 20px 0 12px;">Quick Add Items</h3>
+<div id="checkboxGrid"></div>
+
+<h3 style="margin: 20px 0 12px;">Site Notes</h3>
+<textarea id="siteNotes" placeholder="Enter your site notes here..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-height: 330px; resize: vertical; font-family: inherit;"></textarea>
+
+<h3 style="margin: 20px 0 12px;">Photos (Max 6)</h3>
+<button class="btn btn-primary" onclick="document.getElementById('multipleFiles').click()" style="margin-bottom: 16px;">
+  📸 Add Multiple Photos
+</button>
+<input type="file" id="multipleFiles" accept="image/*" multiple style="display:none;" onchange="handleMultiplePhotos(event)">
+<div class="photo-drop-zone" id="photoDropZone">
+  <div class="drop-overlay" id="dropOverlay">Drop photos here</div>
+  <div class="photo-grid" id="photoGrid"></div>
+</div>
+<p class="drag-hint" style="margin: 0 0 16px 0; color: #666; font-size: 13px;">Drag and drop single or multiple photos on to the grid to add</p>
+
+<div class="btn-group">
+  <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+  <button class="btn btn-secondary" onclick="exportDOC()">📝 Export Word</button>
+  <button class="btn btn-success" onclick="saveNote()">💾 Save</button>
+  <button class="btn btn-teal" onclick="saveAndClose()">📥 Save & Close</button>
+</div>
+
+</div>
+
+<div id="saved" class="tab-content">
+<h2 style="margin-bottom: 16px;">Saved Notes</h2>
+<div id="savedNotesTable"></div>
+<div class="btn-group" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+<button class="btn btn-primary" onclick="exportAllData()">📤 Export Data</button>
+<button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Import Data</button>
+<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importAllData(event)">
+</div>
+</div>
+
+<div id="jobs" class="tab-content">
+<h2 style="margin-bottom: 16px;">Job Database</h2>
+<button class="btn btn-success" style="margin-bottom: 20px;" onclick="showAddJobModal()">+ Add New Job</button>
+<div id="jobsTable"></div>
+</div>
+
+<div id="settings" class="tab-content">
+<div class="settings-section">
+<h3>Technician Name</h3>
+<div class="form-group">
+<input type="text" id="settingsTechnician" placeholder="Enter default technician name" onchange="saveSettings()">
+</div>
+</div>
+
+<div class="settings-section">
+<h3>Quick Add Custom Templates</h3>
+<div id="templateInputs"></div>
+<button class="btn btn-success" style="margin-top:10px;" onclick="saveSettings()">Save Templates</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="deleteModal">
+<div class="modal-content">
+<h3>Delete Note?</h3>
+<p>Are you sure you want to delete this note? This cannot be undone.</p>
+<div class="modal-btns">
+<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+<button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="jobModal">
+<div class="modal-content">
+<h3 id="jobModalTitle">Add New Job</h3>
+<div class="form-group">
+  <label>Job Name *</label>
+  <input type="text" id="modalJobName" placeholder="Enter job name">
+</div>
+<div class="form-group">
+  <label>Job Number *</label>
+  <input type="text" id="modalJobNumber" placeholder="Enter job number">
+</div>
+<div class="form-group">
+  <label>Client</label>
+  <input type="text" id="modalClient" placeholder="Enter client name">
+</div>
+<div class="form-group">
+  <label>BC Number</label>
+  <input type="text" id="modalBcNumber" placeholder="Enter BC number">
+</div>
+<div class="form-group">
+  <label>Site Foreman</label>
+  <input type="text" id="modalSiteForeman" placeholder="Enter site foreman name">
+</div>
+<div class="modal-btns">
+  <button class="btn btn-secondary" onclick="closeJobModal()">Cancel</button>
+  <button class="btn btn-success" onclick="saveJob()">Save Job</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="deleteJobModal">
+<div class="modal-content">
+<h3>Delete Job?</h3>
+<p>Are you sure you want to delete this job? This cannot be undone.</p>
+<div class="modal-btns">
+  <button class="btn btn-secondary" onclick="closeDeleteJobModal()">Cancel</button>
+  <button class="btn btn-danger" onclick="confirmDeleteJob()">Delete</button>
+</div>
+</div>
+</div>
+
+<script>
+const defaultTemplates = {
+  earthworks: [
+    { title: "Site Stripping (pass)", text: "Observed topsoil stripping across approximate area shown on attached site plan. Topsoil had adequately been stripped with native soils exposed" },
+    { title: "Site Stripping (fail)", text: "Observed topsoil stripping across approximate area shown on attached site plan. As per photos some areas had not been adequately stripped. Advised the contractor they should completely strip these areas and we should be given an opportunity to observe this prior to any fill being placed" },
+    { title: "Clay Fill Testing", text: "Approximately XXX mm of clay has been placed across the fill area shown on the attached site plan since last visit. Shear vane testing across the fill area ranged from XX to XX kPa. XX air voids samples were collected from locations shown on attached site plan." },
+    { title: "Clay Fill Failed", text: "Approximately XXX mm of clay has been placed across the fill area shown on the attached site plan since last visit. Shear vane testing across the fill area ranged from XX to XX kPa. This did not meet the project specification.  Advised the contractor that the materials need to be dried out / recompacted to achieve the required standard and that we should be given an opportunity to retest." },
+    { title: "Soft Spot", text: "An area of soft ground was observed covering approximately XX m by XX m.  The materials in this area comprised organics / soft clays / construction debris.  A trial pit identified the materials were approximately XX m deep.  These materials do not meet the design assumptions and are not considered suitable to remain in place." },
+    { title: "Hardfill NDM Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. XXX NDM tests were carried out in the locations shown on the site plan. These returned results ranging between XX and XX % of MDD which meet the required specification." },
+  ],
+  building: [
+    { title: "Proof Roll (passed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller. No obvious deflections were visible. Vane shear strengths measured across the area ranged between XX and XX kPa. Advised contractor that basecourse could be placed across this area." },
+    { title: "Proof Roll (failed)", text: "Observed proof roll of the area shown on the attached site plan with a XX ton smooth drum roller. Weaving of the ground was identified in the areas shown on site plan. Trial pits were carried out in these areas to a depth of XX m which identified ..." },
+    { title: "Shallow Foundations", text: "Observed strip and pad foundation excavations along the grid lines marked on the attached site plan. All excavations were a minimum of XXX mm deep. Shear vanes in the base ranged between XX and XX kPa which meet the design assumptions." },
+    { title: "Piled Foundations", text: "Observed bored pile excavations as shown on attached site plan. Piles were XX m deep and XXX mm diameter. Shear vanes in the side of the piles ranged between XX and XX kPa and in the base ranged between XX and XX kPa which meet the design assumptions." },
+    { title: "Retaining Walls", text: "Observed the retaining wall pile holes along the length marked on the attached plan. Pile hole depths ranged between XX and XX m. For the wall heights measured these depths were consistent with our design.  Shear vanes in the cut face ranged between XX and XX kPa. Shear vanes in the pile holes ranged between XX and XX kPa.  The shear strengths were consistent with the design assumptions." },
+    { title: "Clegg Testing", text: "Approximately XXX mm of hardfill has been placed across the area shown on the attached site plan since last visit. Clegg Hammer testing was carried out which returned CIV values ranging between XX and XX which meet the required specification." },
+  ],
+  custom: [
+    { title: "Custom Text 1", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+    { title: "Custom Text 2", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+    { title: "Custom Text 3", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+    { title: "Custom Text 4", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+    { title: "Custom Text 5", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+    { title: "Custom Text 6", text: "Add your own custom title and notes under the settings menu.  Use this to speed up repetitive site visits." },
+  ]
+};
+
+const COMPANY_LOGO = 'data:image/png;base64,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';
+
+let settings = JSON.parse(localStorage.getItem('siteNotesSettings')) || {
+  technician: '',
+  logo: COMPANY_LOGO,
+  templates: {
+    earthworks: [...defaultTemplates.earthworks],
+    building: [...defaultTemplates.building],
+    custom: [...defaultTemplates.custom]
+  }
+};
+let savedNotes = JSON.parse(localStorage.getItem('siteNotesSaved')) || [];
+let savedJobs = JSON.parse(localStorage.getItem('siteNotesJobs')) || [];
+let photos = [null, null, null, null, null, null];
+let editingNoteId = null;
+let deleteNoteId = null;
+let editingJobId = null;
+let deleteJobId = null;
+
+function init() {
+  document.getElementById('settingsTechnician').value = settings.technician;
+
+  renderTemplateInputs();
+  renderCheckboxes();
+  renderPhotoSlots();
+  renderSavedNotes();
+  setDefaultDateTime();
+  document.getElementById('technician').value = settings.technician;
+  renderJobs();
+  setupPhotoDropZone();
+  setupDocumentDragPrevention();
+}
+
+function setDefaultDateTime() {
+  const now = new Date();
+  document.getElementById('noteDate').value = now.toISOString().split('T')[0];
+  
+  // Round down to nearest 10 minutes
+  const minutes = now.getMinutes();
+  const roundedMinutes = Math.floor(minutes / 10) * 10;
+  now.setMinutes(roundedMinutes);
+  now.setSeconds(0);
+  
+  document.getElementById('noteTime').value = now.toTimeString().slice(0,5);
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.getElementById(tab).classList.add('active');
+  if (tab === 'saved') renderSavedNotes();
+}
+
+function renderTemplateInputs() {
+  const container = document.getElementById('templateInputs');
+  
+  let html = '';
+  
+  // Custom section
+  html += '<p style="color:#666;font-size:13px;margin-bottom:12px;">You can edit these templates and save your changes.</p>';
+  html += settings.templates.custom.map((t, i) => `
+    <div style="margin-bottom:20px;padding:16px;background:#f9f9f9;border-radius:6px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="min-width:30px;font-weight:500;color:#666;">${i + 1}.</span>
+        <div class="form-group" style="flex:1;margin:0;">
+          <label>Title</label>
+          <input type="text" value="${t.title}" placeholder="Title" onchange="updateTemplate('custom', ${i}, 'title', this.value)">
+        </div>
+      </div>
+      <div class="form-group" style="margin:0;padding-left:40px;">
+        <label>Text</label>
+        <textarea style="min-height:100px;" placeholder="Standard text..." onchange="updateTemplate('custom', ${i}, 'text', this.value)">${t.text}</textarea>
+      </div>
+    </div>
+  `).join('');
+  html += '</div>';
+  
+  container.innerHTML = html;
+}
+
+function updateTemplate(category, index, field, value) {
+  settings.templates[category][index][field] = value;
+}
+
+function renderCheckboxes() {
+  const container = document.getElementById('checkboxGrid');
+  
+  let html = '';
+
+  // ============================================================
+  // STANDALONE CHECKBOXES ABOVE
+  // ============================================================
+  html += `
+    <div class="checkbox-grid" style="margin-bottom: 16px;">
+      <div class="checkbox-item">
+        <input type="checkbox" id="cb-top-1" onchange="handleStandaloneCheckbox('top', 1, this.checked)">
+        <label for="cb-top-1">Contractor Requested</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="cb-top-2" onchange="handleStandaloneCheckbox('top', 2, this.checked)">
+        <label for="cb-top-2">Retesting Visit</label>
+      </div>
+    </div>
+  `;
+  
+  // Earthworks section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('earthworks')">
+        <span>Earthworks</span>
+        <span class="section-arrow" id="arrow-earthworks">▼</span>
+      </div>
+      <div class="section-content" id="content-earthworks">
+        <div class="checkbox-grid">
+          ${settings.templates.earthworks.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-earthworks-${i}" onchange="handleCheckbox('earthworks', ${i}, this.checked)">
+              <label for="cb-earthworks-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Building Construction section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('building')">
+        <span>Building Construction</span>
+        <span class="section-arrow" id="arrow-building">▼</span>
+      </div>
+      <div class="section-content" id="content-building">
+        <div class="checkbox-grid">
+          ${settings.templates.building.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-building-${i}" onchange="handleCheckbox('building', ${i}, this.checked)">
+              <label for="cb-building-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Custom section
+  html += `
+    <div class="quick-add-section">
+      <div class="section-header" onclick="toggleSection('custom')">
+        <span>Custom</span>
+        <span class="section-arrow" id="arrow-custom">▼</span>
+      </div>
+      <div class="section-content" id="content-custom">
+        <div class="checkbox-grid">
+          ${settings.templates.custom.map((t, i) => `
+            <div class="checkbox-item">
+              <input type="checkbox" id="cb-custom-${i}" onchange="handleCheckbox('custom', ${i}, this.checked)">
+              <label for="cb-custom-${i}">${t.title}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // ============================================================
+  // STANDALONE CHECKBOXES BELOW
+  // ============================================================
+  html += `
+    <div class="checkbox-grid" style="margin-top: 16px;">
+      <div class="checkbox-item">
+        <input type="checkbox" id="cb-bottom-1" onchange="handleStandaloneCheckbox('bottom', 1, this.checked)">
+        <label for="cb-bottom-1">Contractor Advised</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" id="cb-bottom-2" onchange="handleStandaloneCheckbox('bottom', 2, this.checked)">
+        <label for="cb-bottom-2">CAN Required</label>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function toggleSection(section) {
+  const content = document.getElementById('content-' + section);
+  const arrow = document.getElementById('arrow-' + section);
+  
+  content.classList.toggle('active');
+  arrow.classList.toggle('collapsed');
+}
+
+function handleCheckbox(category, index, checked) {
+  if (checked) {
+    const textarea = document.getElementById('siteNotes');
+    const currentText = textarea.value;
+    const newText = settings.templates[category][index].text;
+    textarea.value = currentText ? currentText + '\n\n' + newText : newText;
+  }
+}
+
+function handleStandaloneCheckbox(position, index, checked) {
+  if (checked) {
+    const textarea = document.getElementById('siteNotes');
+    const currentText = textarea.value;
+    
+    // Define your standalone checkbox texts here
+    const standaloneTexts = {
+      top: {
+        1: "Visited site at the request of the contractor to observe site works.",
+        2: "Visited site to carry out retest of recent failed testing."
+      },
+      bottom: {
+        1: "All testing and observations were communicated to the contractors on site.",
+        2: "Discussed potential remedial actions with contractor. Our recommendations will be issued in a separate CAN."
+      }
+    };
+    
+    const newText = standaloneTexts[position][index];
+    textarea.value = currentText ? currentText + '\n\n' + newText : newText;
+  }
+}
+
+function renderPhotoSlots() {
+  const container = document.getElementById('photoGrid');
+  container.innerHTML = photos.map((p, i) => `
+    <div class="photo-slot ${p ? 'has-photo' : ''}" id="slot${i}" data-index="${i}">
+      ${p ? `<img src="${p.data}" alt="Photo ${i + 1}" draggable="true" data-photo-index="${i}">` : ''}
+      <input type="file" id="file${i}" accept="image/*" style="display:none;">
+      ${p ? '' : `<button class="add-btn" onclick="document.getElementById('file${i}').click()">+ Add Photo</button>`}
+      ${p ? `<input type="text" placeholder="Caption..." value="${p.caption || ''}" onchange="updateCaption(${i}, this.value)" draggable="false">` : ''}
+      ${p ? `<button class="remove-btn" onclick="removePhoto(${i})" draggable="false">Remove</button>` : ''}
+    </div>
+  `).join('');
+  
+  // Attach change handlers for file inputs
+  photos.forEach((p, i) => {
+    const fileInput = document.getElementById('file' + i);
+    if (fileInput) {
+      fileInput.onchange = function(event) { handlePhoto(i, event); };
+    }
+  });
+  
+  // Add drag and drop handlers for rearranging
+  setupPhotoDragAndDrop();
+}
+
+function setupPhotoDragAndDrop() {
+  const slots = document.querySelectorAll('.photo-slot');
+  const images = document.querySelectorAll('.photo-slot img[data-photo-index]');
+  let draggedIndex = null;
+  
+  // Set up drag events on images
+  images.forEach((img) => {
+    img.addEventListener('dragstart', function(e) {
+      draggedIndex = parseInt(img.getAttribute('data-photo-index'));
+      img.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedIndex.toString());
+      e.dataTransfer.setData('application/x-photo-rearrange', draggedIndex.toString()); // Add custom type
+      console.log('Drag started from index:', draggedIndex);
+    });
+    
+    img.addEventListener('dragend', function(e) {
+      console.log('Drag ended');
+      img.style.opacity = '1';
+      slots.forEach(s => s.classList.remove('drag-target'));
+      draggedIndex = null;
+    });
+  });
+  
+  // Set up drop zones on slots
+  slots.forEach((slot, index) => {
+    slot.addEventListener('dragover', function(e) {
+      // Only allow if it's an internal rearrange
+      if (e.dataTransfer.types.includes('application/x-photo-rearrange')) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+      }
+    });
+    
+    slot.addEventListener('dragenter', function(e) {
+      // Only allow if it's an internal rearrange
+      if (e.dataTransfer.types.includes('application/x-photo-rearrange')) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (draggedIndex !== null && draggedIndex !== index) {
+          slot.classList.add('drag-target');
+          console.log('Drag enter slot:', index);
+        }
+      }
+    });
+    
+    slot.addEventListener('dragleave', function(e) {
+      // Only remove if we're actually leaving the slot
+      if (e.target === slot) {
+        slot.classList.remove('drag-target');
+      }
+    });
+    
+    slot.addEventListener('drop', function(e) {
+      // Only handle if it's an internal rearrange
+      if (e.dataTransfer.types.includes('application/x-photo-rearrange')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Drop event fired! Dragged:', draggedIndex, 'Target:', index);
+        
+        slot.classList.remove('drag-target');
+        
+        if (draggedIndex !== null && draggedIndex !== index) {
+          console.log('Swapping photos:', draggedIndex, 'with', index);
+          // Swap the photos
+          const temp = photos[draggedIndex];
+          photos[draggedIndex] = photos[index];
+          photos[index] = temp;
+          
+          console.log('Photos after swap:', photos);
+          renderPhotoSlots();
+        }
+        
+        draggedIndex = null;
+      }
+    });
+  });
+}
+
+function handlePhoto(index, event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > 1200) { h = h * (1200 / w); w = 1200; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      photos[index] = { data: canvas.toDataURL('image/jpeg', 0.85), caption: '' };
+      renderPhotoSlots();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateCaption(index, caption) {
+  if (photos[index]) photos[index].caption = caption;
+}
+
+function removePhoto(index) {
+  photos[index] = null;
+  renderPhotoSlots();
+}
+
+function saveSettings() {
+  settings.technician = document.getElementById('settingsTechnician').value;
+  
+  // Only read and save custom templates
+  const templateDivs = document.querySelectorAll('#templateInputs > div > div[style*="margin-bottom:20px"]');
+  templateDivs.forEach((div, i) => {
+    const titleInput = div.querySelector('input[type="text"]');
+    const textArea = div.querySelector('textarea');
+    if (titleInput && textArea) {
+      settings.templates.custom[i] = {
+        title: titleInput.value,
+        text: textArea.value
+      };
+    }
+  });
+  
+  localStorage.setItem('siteNotesSettings', JSON.stringify(settings));
+  renderCheckboxes();
+}
+
+function getFormData() {
+  return {
+    id: editingNoteId || Date.now(),
+    jobName: document.getElementById('jobName').value,
+    jobNumber: document.getElementById('jobNumber').value,
+    client: document.getElementById('client').value,
+    bcNumber: document.getElementById('bcNumber').value,
+    siteForeman: document.getElementById('siteForeman').value,
+    weather: document.getElementById('weather').value,
+    technician: document.getElementById('technician').value,
+    date: document.getElementById('noteDate').value,
+    time: document.getElementById('noteTime').value,
+    notes: document.getElementById('siteNotes').value,
+    photos: photos.filter(p => p !== null)
+  };
+}
+
+function saveNote() {
+  const data = getFormData();
+  if (!data.jobName && !data.notes) { alert('Please add some content before saving.'); return; }
+  const existingIndex = savedNotes.findIndex(n => n.id === data.id);
+  if (existingIndex >= 0) savedNotes[existingIndex] = data;
+  else savedNotes.unshift(data);
+  localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+  alert('Note saved successfully!');
+  editingNoteId = data.id;
+}
+
+function saveAndClose() {
+  const data = getFormData();
+  if (!data.jobName && !data.notes) { 
+    alert('Please add some content before saving.'); 
+    return; 
+  }
+  
+  const existingIndex = savedNotes.findIndex(n => n.id === data.id);
+  if (existingIndex >= 0) savedNotes[existingIndex] = data;
+  else savedNotes.unshift(data);
+  localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+  
+  alert('Note saved successfully!');
+  clearForm();
+}
+
+function renderSavedNotes() {
+  const container = document.getElementById('savedNotesTable');
+  if (savedNotes.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No saved notes yet.</p>';
+    return;
+  }
+  
+  // Check if we're on a mobile device (screen width < 720px)
+  const isMobile = window.innerWidth < 720;
+  
+  if (isMobile) {
+    // Mobile layout - only Date, Job Name, Actions
+    container.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Job Name</th><th>Actions</th></tr></thead>
+      <tbody>${savedNotes.map(n => `
+        <tr>
+          <td>${n.date || '-'}</td>
+          <td>${n.jobName || '-'}</td>
+          <td class="action-btns">
+            <button class="btn btn-primary" onclick="loadNote(${n.id})">Open</button>
+            <button class="btn btn-danger" onclick="showDeleteModal(${n.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  } else {
+    // Desktop layout - all columns
+    container.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Job Number</th><th>Job Name</th><th>Preview</th><th>Actions</th></tr></thead>
+      <tbody>${savedNotes.map(n => `
+        <tr>
+          <td>${n.date || '-'}</td>
+          <td>${n.jobNumber || '-'}</td>
+          <td>${n.jobName || '-'}</td>
+          <td class="note-preview">${n.notes ? n.notes.substring(0, 50) : '-'}</td>
+          <td class="action-btns">
+            <button class="btn btn-primary" onclick="loadNote(${n.id})">Open</button>
+            <button class="btn btn-danger" onclick="showDeleteModal(${n.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+}
+
+function loadNote(id) {
+  const note = savedNotes.find(n => n.id === id);
+  if (!note) return;
+  editingNoteId = id;
+  document.getElementById('jobName').value = note.jobName || '';
+  document.getElementById('jobNumber').value = note.jobNumber || '';
+  document.getElementById('client').value = note.client || '';
+  document.getElementById('bcNumber').value = note.bcNumber || '';
+  document.getElementById('siteForeman').value = note.siteForeman || '';
+  document.getElementById('weather').value = note.weather || '';
+  document.getElementById('technician').value = note.technician || '';
+  document.getElementById('noteDate').value = note.date || '';
+  document.getElementById('noteTime').value = note.time || '';
+  document.getElementById('siteNotes').value = note.notes || '';
+  photos = [null, null, null, null, null, null];
+  (note.photos || []).forEach((p, i) => { if (i < 6) photos[i] = p; });
+  renderPhotoSlots();
+  showTab('new');
+}
+
+function showDeleteModal(id) {
+  deleteNoteId = id;
+  document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('deleteModal').classList.remove('active');
+  deleteNoteId = null;
+}
+
+function confirmDelete() {
+  savedNotes = savedNotes.filter(n => n.id !== deleteNoteId);
+  localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+  closeModal();
+  renderSavedNotes();
+}
+
+function clearForm() {
+  editingNoteId = null;
+  document.getElementById('jobName').value = '';
+  document.getElementById('jobNumber').value = '';
+  document.getElementById('client').value = '';
+  document.getElementById('bcNumber').value = '';
+  document.getElementById('siteForeman').value = '';
+  document.getElementById('weather').value = '';
+  document.getElementById('technician').value = settings.technician;
+  document.getElementById('siteNotes').value = '';
+  photos = [null, null, null, null, null, null];
+  document.querySelectorAll('.checkbox-item input').forEach(cb => cb.checked = false);
+  renderPhotoSlots();
+  setDefaultDateTime();
+}
+
+// ============================================================================
+// JOB MANAGEMENT FUNCTIONS
+// ============================================================================
+
+function renderJobs() {
+  const container = document.getElementById('jobsTable');
+  if (savedJobs.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No jobs saved yet.</p>';
+    return;
+  }
+  
+  // Sort by job number for display in table
+  const sortedJobs = [...savedJobs].sort((a, b) => {
+    const numA = a.jobNumber || '';
+    const numB = b.jobNumber || '';
+    return numA.localeCompare(numB, undefined, { numeric: true });
+  });
+  
+  container.innerHTML = `<table>
+    <thead><tr><th>Job Number</th><th>Job Name</th><th>Actions</th></tr></thead>
+    <tbody>${sortedJobs.map(j => `
+      <tr>
+        <td>${j.jobNumber || '-'}</td>
+        <td>${j.jobName || '-'}</td>
+        <td class="action-btns">
+          <button class="btn btn-primary" onclick="showEditJobModal(${j.id})">Edit</button>
+          <button class="btn btn-danger" onclick="showDeleteJobModal(${j.id})">Delete</button>
+        </td>
+      </tr>
+    `).join('')}</tbody>
+  </table>`;
+}
+
+function showAddJobModal() {
+  editingJobId = null;
+  document.getElementById('jobModalTitle').textContent = 'Add New Job';
+  document.getElementById('modalJobName').value = '';
+  document.getElementById('modalJobNumber').value = '';
+  document.getElementById('modalClient').value = '';
+  document.getElementById('modalBcNumber').value = '';
+  document.getElementById('modalSiteForeman').value = '';
+  document.getElementById('jobModal').classList.add('active');
+}
+
+function showEditJobModal(id) {
+  const job = savedJobs.find(j => j.id === id);
+  if (!job) return;
+  
+  editingJobId = id;
+  document.getElementById('jobModalTitle').textContent = 'Edit Job';
+  document.getElementById('modalJobName').value = job.jobName || '';
+  document.getElementById('modalJobNumber').value = job.jobNumber || '';
+  document.getElementById('modalClient').value = job.client || '';
+  document.getElementById('modalBcNumber').value = job.bcNumber || '';
+  document.getElementById('modalSiteForeman').value = job.siteForeman || '';
+  document.getElementById('jobModal').classList.add('active');
+}
+
+function closeJobModal() {
+  document.getElementById('jobModal').classList.remove('active');
+  editingJobId = null;
+}
+
+function saveJob() {
+  const jobName = document.getElementById('modalJobName').value.trim();
+  const jobNumber = document.getElementById('modalJobNumber').value.trim();
+  const client = document.getElementById('modalClient').value.trim();
+  const bcNumber = document.getElementById('modalBcNumber').value.trim();
+  const siteForeman = document.getElementById('modalSiteForeman').value.trim();
+  
+  // Validation
+  if (!jobName || !jobNumber) {
+    alert('Job Name and Job Number are required.');
+    return;
+  }
+  
+  // Check for duplicate job number (exclude current job if editing)
+  const duplicate = savedJobs.find(j => 
+    j.jobNumber === jobNumber && j.id !== editingJobId
+  );
+  
+  if (duplicate) {
+    alert('A job with this Job Number already exists. Please use a unique Job Number.');
+    return;
+  }
+  
+  const jobData = {
+    id: editingJobId || Date.now(),
+    jobName,
+    jobNumber,
+    client,
+    bcNumber,
+    siteForeman
+  };
+  
+  const existingIndex = savedJobs.findIndex(j => j.id === jobData.id);
+  if (existingIndex >= 0) {
+    savedJobs[existingIndex] = jobData;
+  } else {
+    savedJobs.push(jobData);
+  }
+  
+  localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+  renderJobs();
+  closeJobModal();
+  alert('Job saved successfully!');
+}
+
+function showDeleteJobModal(id) {
+  deleteJobId = id;
+  document.getElementById('deleteJobModal').classList.add('active');
+}
+
+function closeDeleteJobModal() {
+  document.getElementById('deleteJobModal').classList.remove('active');
+  deleteJobId = null;
+}
+
+function confirmDeleteJob() {
+  savedJobs = savedJobs.filter(j => j.id !== deleteJobId);
+  localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+  closeDeleteJobModal();
+  renderJobs();
+}
+
+// ============================================================================
+// JOB DROPDOWN FUNCTIONS
+// ============================================================================
+
+function filterJobs() {
+  const input = document.getElementById('jobName').value.toLowerCase();
+  const dropdown = document.getElementById('jobDropdown');
+  
+  // Sort jobs alphabetically by name for dropdown
+  const sortedJobs = [...savedJobs].sort((a, b) => 
+    (a.jobName || '').localeCompare(b.jobName || '')
+  );
+  
+  const filtered = sortedJobs.filter(j => 
+    (j.jobName || '').toLowerCase().includes(input) ||
+    (j.jobNumber || '').toLowerCase().includes(input)
+  );
+  
+  let html = '';
+  
+  if (filtered.length > 0) {
+    html = filtered.map(j => 
+      `<div class="dropdown-item" onmousedown="selectJob(${j.id})">
+        <strong>${j.jobName}</strong><br>
+        <span style="font-size:12px;color:#666;">${j.jobNumber}</span>
+      </div>`
+    ).join('');
+  } else if (input.length > 0) {
+    html = '<div class="dropdown-item no-results">No jobs found</div>';
+  }
+  
+  html += '<div class="dropdown-item add-new" onmousedown="showAddJobModal()">+ Add New Job</div>';
+  
+  dropdown.innerHTML = html;
+  dropdown.classList.add('active');
+}
+
+function showJobDropdown() {
+  filterJobs();
+}
+
+function hideJobDropdown() {
+  setTimeout(() => {
+    document.getElementById('jobDropdown').classList.remove('active');
+  }, 200);
+}
+
+function selectJob(id) {
+  const job = savedJobs.find(j => j.id === id);
+  if (!job) return;
+  
+  document.getElementById('jobName').value = job.jobName || '';
+  document.getElementById('jobNumber').value = job.jobNumber || '';
+  document.getElementById('client').value = job.client || '';
+  document.getElementById('bcNumber').value = job.bcNumber || '';
+  document.getElementById('siteForeman').value = job.siteForeman || '';
+  
+  document.getElementById('jobDropdown').classList.remove('active');
+}
+
+async function exportPDF() {
+  const data = getFormData();
+  const { jsPDF } = window.jspdf;
+  
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageW = 210;
+  const pageH = 297;
+  const margin = 15;
+
+  // ---------------------------------------------------------------------------
+  // Helper for section headings
+  function sectionHeader(text, y) {
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, "bold");
+    pdf.text(text, margin, y);
+
+    pdf.setDrawColor(200);
+    pdf.line(margin, y + 2, margin + 60, y + 2);
+
+    return y + 10;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1. HEADER BAR
+  let y = margin;
+
+  // Logo right-aligned
+  if (settings.logo) {
+    // Load logo image first
+    const logoImg = new Image();
+    await new Promise((resolve) => {
+      logoImg.onload = resolve;
+      logoImg.src = settings.logo;
+    });
+    
+    const maxLogoW = 50;
+    const maxLogoH = 25;
+    
+    // Calculate aspect ratio
+    const aspectRatio = logoImg.width / logoImg.height;
+    
+    let logoW, logoH;
+    if (aspectRatio > maxLogoW / maxLogoH) {
+      // Width is the limiting factor
+      logoW = maxLogoW;
+      logoH = maxLogoW / aspectRatio;
+    } else {
+      // Height is the limiting factor
+      logoH = maxLogoH;
+      logoW = maxLogoH * aspectRatio;
+    }
+    
+    const logoX = pageW - margin - logoW;
+    try {
+      pdf.addImage(settings.logo, "PNG", logoX, y, logoW, logoH);
+    } catch (e) {
+      console.log("Logo error", e);
+    }
+  }
+
+  // Title left-aligned
+  pdf.setFontSize(20);
+  pdf.setFont(undefined, "bold");
+  pdf.text("Site Observation Record", margin, y + 10);
+
+  // Header divider
+  pdf.setDrawColor(180);
+  pdf.line(margin, y + 18, pageW - margin, y + 18);
+
+  y += 28;
+
+  // ---------------------------------------------------------------------------
+  // 2. JOB DETAILS TABLE (with borders)
+  pdf.setFontSize(10);
+  pdf.setFont(undefined, "normal");
+  
+  const tableStartY = y;
+  const labelColWidth = 25; // Width for label columns
+  const valueColWidth = ((pageW - margin * 2) - (labelColWidth * 2)) / 2; // Remaining width split for values
+  const rowHeight = 8;
+  
+  // Draw table borders
+  pdf.setDrawColor(200);  // Grey color (same as section header lines)
+  pdf.setLineWidth(0.3);
+  
+  // Data rows - now separated into label and value
+  const rows = [
+    [`Job Name:`, data.jobName || "-", `Job Number:`, data.jobNumber || "-"],
+    [`Client:`, data.client || "-", `BC Number:`, data.bcNumber || "-"],
+    [`Site Foreman:`, data.siteForeman || "-", `Weather:`, data.weather || "-"],
+    [`Technician:`, data.technician || "-", `Date:`, data.date || "-"],
+    [`Reviewed:`, "----------", `Time:`, data.time || "-"]
+  ];
+  
+  rows.forEach((row, rowIndex) => {
+    const rowY = tableStartY + rowIndex * rowHeight;
+    
+    // Calculate column positions
+    const col1X = margin;
+    const col2X = margin + labelColWidth;
+    const col3X = margin + labelColWidth + valueColWidth;
+    const col4X = margin + labelColWidth + valueColWidth + labelColWidth;
+    
+    // Draw cells (4 columns)
+    pdf.rect(col1X, rowY, labelColWidth, rowHeight);
+    pdf.rect(col2X, rowY, valueColWidth, rowHeight);
+    pdf.rect(col3X, rowY, labelColWidth, rowHeight);
+    pdf.rect(col4X, rowY, valueColWidth, rowHeight);
+    
+    // Add text
+    pdf.text(row[0], col1X + 2, rowY + 5.5); // Label 1
+    pdf.text(row[1], col2X + 2, rowY + 5.5); // Value 1
+    pdf.text(row[2], col3X + 2, rowY + 5.5); // Label 2
+    pdf.text(row[3], col4X + 2, rowY + 5.5); // Value 2
+  });
+  
+  y = tableStartY + rows.length * rowHeight + 10;
+
+  // ---------------------------------------------------------------------------
+  // 3. SITE NOTES SECTION
+
+  y = sectionHeader("Description of Observations and Testing", y);
+
+  pdf.setFontSize(10);
+  pdf.setFont(undefined, "normal");
+
+  const noteLines = pdf.splitTextToSize(data.notes || "", pageW - margin * 2);
+
+  noteLines.forEach((line) => {
+    if (y > pageH - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+    pdf.text(line, margin, y);
+    y += 6; // readable spacing
+  });
+
+  y += 10;
+
+  // ---------------------------------------------------------------------------
+  // 4. PHOTO GALLERY
+  if (data.photos.length > 0) {
+    // Load all images first
+    const imagePromises = data.photos.map(photo => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = photo.data;
+      });
+    });
+
+    const loadedImages = await Promise.all(imagePromises);
+
+    pdf.addPage();
+    y = margin;
+
+    y = sectionHeader("Site Photos", y);
+
+    const imgMaxW = pageW - margin * 2;
+    const imgMaxH = 100;
+
+    for (let i = 0; i < data.photos.length; i++) {
+      const photo = data.photos[i];
+      const img = loadedImages[i];
+
+      if (!img) continue; // Skip if image failed to load
+
+      // Add new page for each pair of photos (after photo index 0, 2, 4)
+      if (i > 0 && i % 2 === 0) {
+        pdf.addPage();
+        y = margin;
+        y = sectionHeader("Site Photos (continued)", y);
+      }
+
+      // Calculate scaled dimensions
+      const ratio = img.naturalWidth / img.naturalHeight;
+      let w = imgMaxW;
+      let h = w / ratio;
+
+      if (h > imgMaxH) {
+        h = imgMaxH;
+        w = h * ratio;
+      }
+
+      // Center image horizontally on page
+      const offsetX = (pageW - w) / 2;
+
+      // Render image
+      pdf.addImage(photo.data, "JPEG", offsetX, y, w, h);
+
+// Caption (wrapped) - reduced width
+      const caption = photo.caption || `Photo ${i + 1}`;
+      const captionMaxWidth = 170; // Fixed width in mm (210 - 30mm margins - 10mm padding each side)
+      
+      // Reset text settings before splitting
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, "normal");
+      
+      const wrappedCaption = pdf.splitTextToSize(caption, captionMaxWidth);
+      pdf.text(wrappedCaption, margin + 10, y + h + 8);
+
+      // Move down for next photo (spacing between photos on same page)
+      y += h + 20;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. PAGE NUMBERS
+  const pageCount = pdf.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(9);
+    pdf.text(
+      `Page ${i} of ${pageCount}`,
+      pageW - margin - 20,
+      pageH - 10
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. SAVE FILE
+  const safeJob = data.jobNumber || "Job";
+  const safeDate = (data.date || "Date").replace(/-/g, '');
+  const techInitials = (data.technician || "XX")
+    .split(' ')
+    .map(name => name.charAt(0).toUpperCase())
+    .join('');
+  pdf.save(`${safeJob}_${safeDate}_${techInitials}_SiteVisit.pdf`);
+}
+
+function exportDOC() {
+  const data = getFormData();
+
+  const notesFormatted = data.notes.replace(/\n/g, '<br>');
+
+  const doc = '<!DOCTYPE html>' +
+  '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+  '<head>' +
+  '<meta charset="UTF-8">' +
+  '<style>' +
+  '@page { margin: 15mm; }' +
+  'body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; margin: 0; }' +
+  'h1 { font-size: 20pt; margin: 0 0 12pt 0; font-weight: bold; }' +
+  'h2 { font-size: 14pt; margin: 20pt 0 2pt 0; font-weight: bold; }' +
+  'hr { border: none; border-bottom: 1px solid #c8c8c8; margin: 2pt 0 10pt 0; width: 60mm; margin-left: 0; }' +
+  '.header-table { width: 100%; margin-bottom: 18pt; border-collapse: collapse; }' +
+  '.title-cell { vertical-align: bottom; }' +
+  '.logo-cell { text-align: right; vertical-align: top; }' +
+  '.header-line { border-bottom: 1px solid #b4b4b4; margin: 0 0 18pt 0; height: 0; }' +
+  '.details { width: 100%; border-collapse: collapse; margin-bottom: 12pt; }' +
+  '.details td { padding: 2pt 4pt; border: 1px solid #c8c8c8; vertical-align: middle; font-size: 10pt; }' +
+  '.details .label { width: 30mm; font-weight: normal; }' +
+  '.details .value { font-weight: normal; }' +
+  '.notes-heading { font-size: 14pt; font-weight: bold; margin: 20pt 0 0 0; }' +
+  '.notes-hr { border: none; border-bottom: 1px solid #c8c8c8; margin: 2pt 0 10pt 0; width: 60mm; margin-left: 0; }' +
+  '.notes-container { padding: 0; margin-top: 8pt; min-height: 200pt; }' +
+  '.notes { white-space: pre-wrap; font-size: 10pt; line-height: 1.5; }' +
+  '</style>' +
+  '</head>' +
+  '<body>' +
+  '<table class="header-table"><tr>' +
+  '<td class="title-cell"><h1>Site Observation Record</h1></td>' +
+  (settings.logo ? '<td class="logo-cell"><img src="' + settings.logo + '" style="max-width:150px;max-height:60px;object-fit:contain;"></td>' : '') +
+  '</tr></table>' +
+  '<div class="header-line"></div>' +
+  '<table class="details">' +
+  '<tr>' +
+  '<td class="label">Job Name:</td><td class="value">' + (data.jobName || '-') + '</td>' +
+  '<td class="label">Job Number:</td><td class="value">' + (data.jobNumber || '-') + '</td>' +
+  '</tr><tr>' +
+  '<td class="label">Client:</td><td class="value">' + (data.client || '-') + '</td>' +
+  '<td class="label">BC Number:</td><td class="value">' + (data.bcNumber || '-') + '</td>' +
+  '</tr><tr>' +
+  '<td class="label">Site Foreman:</td><td class="value">' + (data.siteForeman || '-') + '</td>' +
+  '<td class="label">Weather:</td><td class="value">' + (data.weather || '-') + '</td>' +
+  '</tr><tr>' +
+  '<td class="label">Technician:</td><td class="value">' + (data.technician || '-') + '</td>' +
+  '<td class="label">Date:</td><td class="value">' + (data.date || '-') + '</td>' +
+  '</tr><tr>' +
+  '<td class="label">Reviewed:</td><td class="value"></td>' +
+  '<td class="label">Time:</td><td class="value">' + (data.time || '-') + '</td>' +
+  '</tr>' +
+  '</table>' +
+  '<div class="notes-heading">Description of Observations and Testing</div>' +
+  '<div class="notes-hr"></div>' +
+  '<div class="notes-container"><div class="notes">' + notesFormatted + '</div></div>' +
+  '</body></html>';
+
+  const blob = new Blob(['\ufeff' + doc], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeJob = data.jobNumber || "export";
+  const safeDate = (data.date || "undated").replace(/-/g, '');
+  const techInitials = (data.technician || "XX")
+    .split(' ')
+    .map(name => name.charAt(0).toUpperCase())
+    .join('');
+  a.download = `${safeJob}_${safeDate}_${techInitials}_SiteVisit.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportAllData() {
+  const exportData = {
+    version: 2,
+    exportDate: new Date().toISOString(),
+    settings: settings,
+    savedNotes: savedNotes,
+    savedJobs: savedJobs
+  };
+  
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'SiteNotes_Backup_' + new Date().toISOString().split('T')[0] + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importAllData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importData = JSON.parse(e.target.result);
+      
+      if (!importData.settings && !importData.savedNotes && !importData.savedJobs) {
+        alert('Invalid backup file. Please select a valid Site Notes backup.');
+        return;
+      }
+      
+      const noteCount = importData.savedNotes ? importData.savedNotes.length : 0;
+      const jobCount = importData.savedJobs ? importData.savedJobs.length : 0;
+      const confirmMsg = 'This will replace all your current data with:\n\n' +
+        '• ' + noteCount + ' saved note(s)\n' +
+        '• ' + jobCount + ' saved job(s)\n' +
+        '• All settings (technician name, logo, templates)\n\n' +
+        'Your current data will be lost. Continue?';
+      
+      if (!confirm(confirmMsg)) {
+        event.target.value = '';
+        return;
+      }
+      
+      if (importData.settings) {
+        settings = importData.settings;
+        settings.logo = COMPANY_LOGO; // Always use hard-coded logo
+        localStorage.setItem('siteNotesSettings', JSON.stringify(settings));
+      }
+      
+      if (importData.savedNotes) {
+        savedNotes = importData.savedNotes;
+        localStorage.setItem('siteNotesSaved', JSON.stringify(savedNotes));
+      }
+      
+      if (importData.savedJobs) {
+        savedJobs = importData.savedJobs;
+        localStorage.setItem('siteNotesJobs', JSON.stringify(savedJobs));
+      }
+      
+      // Refresh the UI
+      document.getElementById('settingsTechnician').value = settings.technician || '';
+
+      renderTemplateInputs();
+      renderCheckboxes();
+      renderSavedNotes();
+      renderJobs();
+      document.getElementById('technician').value = settings.technician || '';
+      
+      alert('Data imported successfully! ' + noteCount + ' note(s) and ' + jobCount + ' job(s) restored.');
+      
+    } catch (err) {
+      alert('Error reading backup file: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+init();
+
+// Multiple photo upload handler
+function handleMultiplePhotos(event) {
+  const files = Array.from(event.target.files);
+  
+  if (files.length === 0) return;
+  
+  const emptySlots = photos.map((p, i) => p === null ? i : -1).filter(i => i !== -1);
+  const availableSlots = emptySlots.length;
+  
+  if (files.length > availableSlots) {
+    alert(`You selected ${files.length} photos, but only ${availableSlots} slot(s) available. Only the first ${availableSlots} photo(s) will be added.`);
+  }
+  
+  const filesToProcess = files.slice(0, availableSlots);
+  
+  filesToProcess.forEach((file, idx) => {
+    const slotIndex = emptySlots[idx];
+    console.log('Processing file for slot:', slotIndex);
+    const reader = new FileReader();
+    reader.onload = function(readerEvent) {
+      console.log('File read complete for slot:', slotIndex);
+      const img = new Image();
+      img.onload = function() {
+        console.log('Image loaded for slot:', slotIndex);
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > 1200) { h = h * (1200 / w); w = 1200; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const photoData = canvas.toDataURL('image/jpeg', 0.85);
+        console.log('Canvas data created, length:', photoData.length);
+        photos[slotIndex] = { data: photoData, caption: '' };
+        console.log('Photo stored at index:', slotIndex, photos[slotIndex]);
+        renderPhotoSlots();
+      };
+      img.src = readerEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  
+  event.target.value = '';
+}
+
+function setupPhotoDropZone() {
+  const dropZone = document.getElementById('photoDropZone');
+  const overlay = document.getElementById('dropOverlay');
+  
+  dropZone.addEventListener('dragenter', function(e) {
+    // Only show overlay if dragging files from outside (not internal photo rearranging)
+    if (e.dataTransfer.types.includes('Files') && !e.dataTransfer.types.includes('application/x-photo-rearrange')) {
+      e.preventDefault();
+      e.stopPropagation();
+      overlay.classList.add('active');
+    }
+  }, true);
+  
+  dropZone.addEventListener('dragleave', function(e) {
+    if (e.target === dropZone || e.target === overlay) {
+      overlay.classList.remove('active');
+    }
+  }, true);
+  
+  // Clear overlay if mouse is released without dropping
+  document.addEventListener('mouseup', function(e) {
+    overlay.classList.remove('active');
+  });
+  
+  document.addEventListener('dragend', function(e) {
+    overlay.classList.remove('active');
+  });
+  
+  dropZone.addEventListener('dragover', function(e) {
+    // Only handle external file drops
+    if (e.dataTransfer.types.includes('Files') && !e.dataTransfer.types.includes('application/x-photo-rearrange')) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+  
+  dropZone.addEventListener('drop', function(e) {
+    // Only handle external file drops, not internal rearranging
+    if (!e.dataTransfer.types.includes('application/x-photo-rearrange') && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      overlay.classList.remove('active');
+      
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      
+      if (files.length === 0) return;
+      
+      const emptySlots = photos.map((p, i) => p === null ? i : -1).filter(i => i !== -1);
+      const availableSlots = emptySlots.length;
+      
+      if (files.length > availableSlots) {
+        alert(`You dropped ${files.length} photos, but only ${availableSlots} slot(s) available. Only the first ${availableSlots} photo(s) will be added.`);
+      }
+      
+      const filesToProcess = files.slice(0, availableSlots);
+      
+      filesToProcess.forEach((file, idx) => {
+        const slotIndex = emptySlots[idx];
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            if (w > 1200) { h = h * (1200 / w); w = 1200; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            photos[slotIndex] = { data: canvas.toDataURL('image/jpeg', 0.85), caption: '' };
+            renderPhotoSlots();
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }, true);
+}
+
+function setupDocumentDragPrevention() {
+  // Only prevent default on actual FILE drops, not element dragging
+  document.addEventListener('drop', function(e) {
+    // Allow drops within the photo drop zone
+    if (!e.target.closest('#photoDropZone')) {
+      e.preventDefault();
+    }
+  }, false);
+  
+  document.addEventListener('dragover', function(e) {
+    // Allow dragover within the photo drop zone
+    if (!e.target.closest('#photoDropZone')) {
+      e.preventDefault();
+    }
+  }, false);
+}
+
+</script>
+</body>
+</html>
