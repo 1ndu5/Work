@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Site Notes V0.5</title>
+<title>Site Notes</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -603,10 +603,10 @@ function handlePhoto(index, event) {
     img.onload = function() {
       const canvas = document.createElement('canvas');
       let w = img.width, h = img.height;
-      if (w > 1200) { h = h * (1200 / w); w = 1200; }
+      if (w > 800) { h = h * (800 / w); w = 800; }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      photos[index] = { data: canvas.toDataURL('image/jpeg', 0.85), caption: '' };
+      photos[index] = { data: canvas.toDataURL('image/jpeg', 0.65), caption: '' };
       renderPhotoSlots();
     };
     img.src = e.target.result;
@@ -1386,10 +1386,10 @@ function handleMultiplePhotos(event) {
         console.log('Image loaded for slot:', slotIndex);
         const canvas = document.createElement('canvas');
         let w = img.width, h = img.height;
-        if (w > 1200) { h = h * (1200 / w); w = 1200; }
+        if (w > 800) { h = h * (800 / w); w = 800; }
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const photoData = canvas.toDataURL('image/jpeg', 0.85);
+        const photoData = canvas.toDataURL('image/jpeg', 0.65);
         console.log('Canvas data created, length:', photoData.length);
         photos[slotIndex] = { data: photoData, caption: '' };
         console.log('Photo stored at index:', slotIndex, photos[slotIndex]);
@@ -1467,10 +1467,10 @@ function setupPhotoDropZone() {
           img.onload = function() {
             const canvas = document.createElement('canvas');
             let w = img.width, h = img.height;
-            if (w > 1200) { h = h * (1200 / w); w = 1200; }
+            if (w > 800) { h = h * (800 / w); w = 800; }
             canvas.width = w; canvas.height = h;
             canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            photos[slotIndex] = { data: canvas.toDataURL('image/jpeg', 0.85), caption: '' };
+            photos[slotIndex] = { data: canvas.toDataURL('image/jpeg', 0.65), caption: '' };
             renderPhotoSlots();
           };
           img.src = evt.target.result;
