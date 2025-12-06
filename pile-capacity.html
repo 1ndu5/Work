@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pile Capacity Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Pile Capacity Calculator</h1>
+        
+        <div class="calculator-section">
+            <h2>Pile Parameters</h2>
+            <div class="params-grid">
+                <div class="input-group compact">
+                    <label for="pile-diameter">Pile Diameter (m):</label>
+                    <input type="number" id="pile-diameter" placeholder="Enter diameter" step="0.01" min="0">
+                </div>
+                
+                <div class="input-group compact">
+                    <label for="pile-depth">Pile Depth (m):</label>
+                    <input type="number" id="pile-depth" placeholder="Enter depth" step="0.01" min="0">
+                </div>
+                
+                <div class="input-group compact">
+                    <label for="strength-reduction-factor">Strength Reduction Factor:</label>
+                    <input type="number" id="strength-reduction-factor" value="0.5" step="0.01" min="0" max="1">
+                </div>
+
+                <div class="input-group compact">
+                    <label for="depth-mode">Depth Type:</label>
+                    <select id="depth-mode">
+                        <option value="mbgl" selected>mbgl</option>
+                        <option value="mrl">mRL</option>
+                    </select>
+                </div>
+                
+                <div class="input-group compact">
+                    <label for="diameter-multiplier">End Bearing Min Embedment (×D):</label>
+                    <input type="number" id="diameter-multiplier" value="4" step="0.1" min="0" max="5">
+                </div>
+            </div>
+        </div>
+        
+        <div class="calculator-section">
+            <h2>Soil Layers</h2>
+            <p class="description">Enter up to 4 soil layers. Only layers with data will be used in calculations.</p>
+            
+            <table class="soil-layers-table">
+                <thead>
+                    <tr>
+                        <th>Layer</th>
+                        <th>Name</th>
+                        <th>Top of Layer (m)</th>
+                        <th>Skin Friction (kPa)</th>
+                        <th>End Bearing (kPa)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><input type="text" id="layer1-name" placeholder="e.g., Fill"></td>
+                        <td><input type="number" id="layer1-top" value="0" placeholder="Top" step="0.01"></td>
+                        <td><input type="number" id="layer1-skin-friction" placeholder="kPa" step="1" min="0"></td>
+                        <td><input type="number" id="layer1-end-bearing" placeholder="kPa" step="1" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="text" id="layer2-name" placeholder="e.g., Clay"></td>
+                        <td><input type="number" id="layer2-top" placeholder="Top" step="0.01"></td>
+                        <td><input type="number" id="layer2-skin-friction" placeholder="kPa" step="1" min="0"></td>
+                        <td><input type="number" id="layer2-end-bearing" placeholder="kPa" step="1" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><input type="text" id="layer3-name" placeholder="e.g., Sand"></td>
+                        <td><input type="number" id="layer3-top" placeholder="Top" step="0.01"></td>
+                        <td><input type="number" id="layer3-skin-friction" placeholder="kPa" step="1" min="0"></td>
+                        <td><input type="number" id="layer3-end-bearing" placeholder="kPa" step="1" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><input type="text" id="layer4-name" placeholder="e.g., Rock"></td>
+                        <td><input type="number" id="layer4-top" placeholder="Top" step="0.01"></td>
+                        <td><input type="number" id="layer4-skin-friction" placeholder="kPa" step="1" min="0"></td>
+                        <td><input type="number" id="layer4-end-bearing" placeholder="kPa" step="1" min="0"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="calculator-section">
+            <h2>Results</h2>
+            <div id="capacity-result" class="result-display"></div>
+        </div>
+    </div>
+    
+    <script src="pile-capacity.js"></script>
+</body>
+</html>
+
+

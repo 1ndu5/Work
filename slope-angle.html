@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slope Angle Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Slope Angle Calculator</h1>
+        
+        <!-- First Calculator: Angle to Ratio Converter -->
+        <div class="calculator-section">
+            <h2>Angle to Ratio Converter</h2>
+            <p class="description">Enter either a slope angle or a vertical:horizontal ratio to convert to the other.</p>
+            
+            <div class="input-group">
+                <label for="angle-input">Slope Angle (degrees):</label>
+                <input type="number" id="angle-input" placeholder="Enter angle in degrees" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="ratio-input">Vertical:Horizontal Ratio:</label>
+                <input type="text" id="ratio-input" placeholder="e.g., 1V:1H or 2V:3H">
+            </div>
+            
+            <button id="convert-btn" class="calculate-btn">Convert</button>
+            
+            <div id="convert-result" class="result-display"></div>
+        </div>
+        
+        <!-- Second Calculator: Triangle Calculator -->
+        <div class="calculator-section">
+            <h2>Triangle Calculator</h2>
+            <p class="description">Enter any two values to calculate the third.</p>
+            
+            <div class="input-group">
+                <label for="vertical-input">Vertical:</label>
+                <input type="number" id="vertical-input" placeholder="Enter vertical distance" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="horizontal-input">Horizontal:</label>
+                <input type="number" id="horizontal-input" placeholder="Enter horizontal distance" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="triangle-angle-input">Angle (degrees):</label>
+                <input type="number" id="triangle-angle-input" placeholder="Enter angle in degrees" step="0.01">
+            </div>
+            
+            <button id="triangle-calculate-btn" class="calculate-btn">Calculate</button>
+            
+            <div id="triangle-result" class="result-display"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
