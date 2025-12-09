@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Tools</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .landing-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .landing-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .landing-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .landing-header p {
+            color: #858585;
+            font-size: 1.1em;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .tool-card {
+            background-color: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 25px;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-3px);
+            border-color: #4ec9b0;
+            box-shadow: 0 4px 12px rgba(78, 201, 176, 0.2);
+        }
+
+        .tool-card h2 {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .tool-card p {
+            color: #858585;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .tool-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .landing-container {
+                padding: 20px 15px;
+            }
+
+            .landing-header h1 {
+                font-size: 2em;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .tool-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-header">
+            <h1>Engineering Tools</h1>
+            <p>Select a tool to get started</p>
+        </div>
+
+        <div class="tools-grid">
+            <a href="Dusty-Notes.html" class="tool-card">
+                <span class="tool-icon">📋</span>
+                <h2>Site Notes</h2>
+                <p>Create and manage site observation records with photos, templates, and export capabilities.</p>
+            </a>
+
+            <a href="Dusty-Notes-Beta.html" class="tool-card">
+                <span class="tool-icon">📝</span>
+                <h2>Site Notes (Beta)</h2>
+                <p>Beta version of the site notes application with additional features and improvements.</p>
+            </a>
+
+            <a href="pile-capacity.html" class="tool-card">
+                <span class="tool-icon">🧮</span>
+                <h2>Pile Capacity Calculator</h2>
+                <p>Calculate pile capacity based on soil layers, depth, diameter, and strength reduction factors.</p>
+            </a>
+
+            <a href="slope-angle.html" class="tool-card">
+                <span class="tool-icon">📐</span>
+                <h2>Slope Angle Calculator</h2>
+                <p>Convert between slope angles and ratios, and calculate triangle dimensions for slope analysis.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
