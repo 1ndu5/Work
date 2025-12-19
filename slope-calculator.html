@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slope Angle Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2em;
+            font-weight: 600;
+        }
+
+        .calculator-section {
+            background-color: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .description {
+            color: #858585;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #cccccc;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: #3c3c3c;
+            border: 1px solid #464647;
+            border-radius: 4px;
+            color: #d4d4d4;
+            font-size: 0.95em;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #007acc;
+            background-color: #404040;
+        }
+
+        .input-group input::placeholder {
+            color: #6a6a6a;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            display: none;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .calculate-btn {
+            flex: 1;
+            padding: 14px;
+            background-color: #007acc;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .calculate-btn:hover {
+            background-color: #005a9e;
+            transform: translateY(-1px);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .clear-btn {
+            padding: 14px 20px;
+            background-color: #3c3c3c;
+            color: #cccccc;
+            border: 1px solid #464647;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .clear-btn:hover {
+            background-color: #4a4a4a;
+            transform: translateY(-1px);
+        }
+
+        .result-display {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            color: #4ec9b0;
+            font-size: 1em;
+            font-weight: 500;
+            display: none;
+            text-align: center;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .result-display.show {
+            display: block;
+        }
+
+        .result-display.error {
+            color: #f48771;
+            border-color: #f48771;
+        }
+
+        .result-display.warning {
+            color: #f48771;
+            border-color: #f48771;
+        }
+
+        .result-display.success {
+            color: #4ec9b0;
+            border-color: #4ec9b0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .calculator-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Slope Angle Calculator</h1>
+        
+        <div class="calculator-section">
+            <p class="description">Enter any combination of values to calculate the others.</p>
+            
+            <div class="input-group">
+                <label for="angle-input">Angle (degrees):</label>
+                <input type="number" id="angle-input" placeholder="Enter angle" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="vertical-input">Vertical (m):</label>
+                <input type="number" id="vertical-input" placeholder="Enter vertical distance" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="horizontal-input">Horizontal (m):</label>
+                <input type="number" id="horizontal-input" placeholder="Enter horizontal distance" step="0.01">
+            </div>
+            
+            <div class="button-group">
+                <button id="calculate-btn" class="calculate-btn">Calculate</button>
+                <button id="clear-btn" class="clear-btn">Clear</button>
+            </div>
+            
+            <div id="result" class="result-display"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Helper functions
+        function toRadians(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        function toDegrees(radians) {
+            return radians * (180 / Math.PI);
+        }
+
+        function formatSlope(vertical, horizontal) {
+            const normalizedH = horizontal / vertical;
+            const rounded = Math.round(normalizedH * 10) / 10;
+            const displayH = Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+            return `1V:${displayH}H`;
+        }
+
+        // Main calculation
+        document.getElementById('calculate-btn').addEventListener('click', function() {
+            const angleInput = document.getElementById('angle-input').value.trim();
+            const verticalInput = document.getElementById('vertical-input').value.trim();
+            const horizontalInput = document.getElementById('horizontal-input').value.trim();
+            const resultDisplay = document.getElementById('result');
+            
+            resultDisplay.classList.remove('show', 'error', 'warning', 'success');
+            
+            const hasAngle = angleInput !== '';
+            const hasVertical = verticalInput !== '';
+            const hasHorizontal = horizontalInput !== '';
+            
+            const providedCount = [hasAngle, hasVertical, hasHorizontal].filter(v => v).length;
+            
+            // No values entered
+            if (providedCount === 0) {
+                resultDisplay.textContent = 'Please enter at least one value.';
+                resultDisplay.classList.add('show', 'error');
+                return;
+            }
+            
+            try {
+                const angle = hasAngle ? parseFloat(angleInput) : null;
+                const vertical = hasVertical ? parseFloat(verticalInput) : null;
+                const horizontal = hasHorizontal ? parseFloat(horizontalInput) : null;
+                
+                // Validate inputs
+                if (angle !== null && (isNaN(angle) || angle <= 0 || angle >= 90)) {
+                    throw new Error('Angle must be between 0 and 90 degrees.');
+                }
+                if (vertical !== null && (isNaN(vertical) || vertical <= 0)) {
+                    throw new Error('Vertical must be a positive number.');
+                }
+                if (horizontal !== null && (isNaN(horizontal) || horizontal <= 0)) {
+                    throw new Error('Horizontal must be a positive number.');
+                }
+                
+                let result = '';
+                
+                // Case 1: Only angle entered
+                if (hasAngle && !hasVertical && !hasHorizontal) {
+                    const h = 1 / Math.tan(toRadians(angle));
+                    const rounded = Math.round(h * 10) / 10;
+                    const displayH = Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+                    result = `Slope: 1V:${displayH}H`;
+                    resultDisplay.classList.add('show');
+                }
+                
+                // Case 2: Only vertical and horizontal entered
+                else if (!hasAngle && hasVertical && hasHorizontal) {
+                    const calcAngle = toDegrees(Math.atan(vertical / horizontal));
+                    const slope = formatSlope(vertical, horizontal);
+                    result = `Angle: ${Math.round(calcAngle)}°\n\nSlope: ${slope}`;
+                    resultDisplay.classList.add('show');
+                }
+                
+                // Case 3: Angle and vertical entered (calculate horizontal)
+                else if (hasAngle && hasVertical && !hasHorizontal) {
+                    const calcHorizontal = vertical / Math.tan(toRadians(angle));
+                    const slope = formatSlope(vertical, calcHorizontal);
+                    result = `A ${Math.round(angle)}° slope, ${vertical.toFixed(1)}m high will be ${calcHorizontal.toFixed(1)}m long.\n\nSlope: ${slope}`;
+                    resultDisplay.classList.add('show');
+                }
+                
+                // Case 4: Angle and horizontal entered (calculate vertical)
+                else if (hasAngle && !hasVertical && hasHorizontal) {
+                    const calcVertical = horizontal * Math.tan(toRadians(angle));
+                    const slope = formatSlope(calcVertical, horizontal);
+                    result = `A ${Math.round(angle)}° slope, ${horizontal.toFixed(1)}m long will be ${calcVertical.toFixed(1)}m high.\n\nSlope: ${slope}`;
+                    resultDisplay.classList.add('show');
+                }
+                
+                // Case 5: All three entered - check consistency
+                else if (hasAngle && hasVertical && hasHorizontal) {
+                    const expectedAngle = toDegrees(Math.atan(vertical / horizontal));
+                    const tolerance = 0.5; // Allow 0.5 degree tolerance
+                    
+                    if (Math.abs(angle - expectedAngle) <= tolerance) {
+                        result = 'All three entered values are consistent.';
+                        resultDisplay.classList.add('show', 'success');
+                    } else {
+                        result = 'Those values do not match, please delete one value to calculate it based on the others.';
+                        resultDisplay.classList.add('show', 'warning');
+                    }
+                }
+                
+                // Case 6: Only vertical or only horizontal entered
+                else if ((hasVertical && !hasHorizontal && !hasAngle) || (!hasVertical && hasHorizontal && !hasAngle)) {
+                    result = 'Please enter an angle or both vertical and horizontal values.';
+                    resultDisplay.classList.add('show', 'error');
+                }
+                
+                resultDisplay.textContent = result;
+                
+            } catch (error) {
+                resultDisplay.textContent = `Error: ${error.message}`;
+                resultDisplay.classList.add('show', 'error');
+            }
+        });
+        
+        // Clear button
+        document.getElementById('clear-btn').addEventListener('click', function() {
+            document.getElementById('angle-input').value = '';
+            document.getElementById('vertical-input').value = '';
+            document.getElementById('horizontal-input').value = '';
+            const resultDisplay = document.getElementById('result');
+            resultDisplay.classList.remove('show', 'error', 'warning', 'success');
+            resultDisplay.textContent = '';
+        });
+        
+        // Allow Enter key to trigger calculation
+        ['angle-input', 'vertical-input', 'horizontal-input'].forEach(function(id) {
+            document.getElementById(id).addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('calculate-btn').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
